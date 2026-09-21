@@ -1,3 +1,4 @@
+import '../../global.css';
 import { useEffect } from 'react';
 import { SplashScreen, Stack } from 'expo-router';
 import {
@@ -30,5 +31,12 @@ export default function RootLayout() {
     return null;
   }
 
-  return <Stack />;
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}
+    />
+  );
 }

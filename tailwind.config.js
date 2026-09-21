@@ -1,0 +1,72 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}",
+  ],
+  presets: [require("nativewind/preset")],
+  theme: {
+    extend: {
+      colors: {
+        violet: {
+          50: "#F5F3FF",
+          100: "#EDE9FE",
+          200: "#DDD6FE",
+          300: "#C4B5FD",
+          400: "#A78BFA",
+          500: "#8E51FF",
+          600: "#7C3AED",
+          700: "#6D28D9",
+          800: "#5B21B6",
+          900: "#4C1D95",
+          950: "#2E1065",
+        },
+        grey: {
+          50: "#FAFAFA",
+          100: "#F4F4F5",
+          200: "#E4E4E7",
+          300: "#D4D4D8",
+          400: "#9F9FA9",
+          500: "#71717B",
+          600: "#52525C",
+          700: "#3F3F46",
+          800: "#27272A",
+          900: "#18181B",
+          950: "#09090B",
+        },
+        brand: {
+          DEFAULT: "#7C3AED",
+          hover: "#6D28D9",
+          active: "#5B21B6",
+          light: "#EDE9FE",
+        },
+        error: {
+          DEFAULT: "#FB2C36",
+          dark: "#C10007",
+          muted: "#FEF2F2",
+        },
+        success: "#00C950",
+        warning: "#FE9A00",
+        info: "#00A6F4",
+      },
+      borderRadius: {
+        xs: "4px",
+        sm: "6px",
+        md: "8px",
+        lg: "12px",
+        xl: "16px",
+        "2xl": "20px",
+        "3xl": "24px",
+        pill: "9999px",
+      },
+      fontFamily: {
+        sans: ["Open Sans", "OpenSans-Regular", "sans-serif"],
+        "sans-medium": ["OpenSans-Medium", "Open Sans", "sans-serif"],
+        "sans-semibold": ["OpenSans-SemiBold", "Open Sans", "sans-serif"],
+        "sans-bold": ["OpenSans-Bold", "Open Sans", "sans-serif"],
+      },
+    },
+  },
+  plugins: [],
+};

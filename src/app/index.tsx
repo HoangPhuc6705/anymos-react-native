@@ -1,87 +1,82 @@
-import {
-  Button,
-  Input,
-  InputGroup
-} from "@/components/ui";
-import { AppText } from "@/components/ui/AppText";
-import { Palette, Spacing } from "@/constants/themes";
-import { useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
-import { UserOutline, LockOutline, EyeOutline, EyeClosedOutline } from 'solar-icon-set'
+import React from "react";
+import { ScrollView, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Button, InputGroup } from "@/components/ui";
+import { UserIcon } from "@/components/ui/icons";
 
 export default function Index() {
-
+  const router = useRouter();
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <AppText>
-        Đăng nhập
-      </AppText>
-      <InputGroup
-        leadingIcon={<UserOutline />}
-        placeholder="John Doe"
-        label="Username" />
-      <InputGroup
-        leadingIcon={<LockOutline />}
-        trailingIcon={<EyeClosedOutline />}
-        label="Password" />
-      <Button
-        title="Đăng nhập"
-      />
-      <Button title="Tiếp tục với Google" variant="outline" />
+    <ScrollView contentContainerClassName="p-4 pt-14 pb-10 bg-grey-50 gap-3">
+      <Text className="font-sans-bold text-2xl text-grey-950 mb-1">Anymos App</Text>
+      <Text className="font-sans text-sm text-grey-500 mb-3">Điều hướng tự động Expo Router</Text>
+
+      {/* Navigation to Auth Screens */}
+      <View className="bg-white p-4 rounded-2xl border border-grey-200">
+        <Text className="font-sans-bold text-lg text-grey-900 mb-1.5">
+          Màn hình Authentication (Figma)
+        </Text>
+        <Text className="font-sans text-xs text-grey-500 mb-4">
+          Bấm vào để mở các frame tương ứng:
+        </Text>
+
+        <View className="gap-3">
+          <Button
+            size="lg"
+            fullWidth
+            variant="default"
+            onPress={() => router.push("/login")}
+          >
+            1. Đăng nhập (Login)
+          </Button>
+
+          <Button
+            size="lg"
+            fullWidth
+            variant="secondary"
+            onPress={() => router.push("/register")}
+          >
+            2. Đăng ký (Register)
+          </Button>
+
+          <Button
+            size="lg"
+            fullWidth
+            variant="outline"
+            onPress={() => router.push("/forgot-password")}
+          >
+            3. Quên mật khẩu (Forgot Password)
+          </Button>
+
+          <Button
+            size="lg"
+            fullWidth
+            variant="ghost"
+            onPress={() =>
+              router.push({
+                pathname: "/verify-otp",
+                params: { email: "user@anymos.app" },
+              })
+            }
+          >
+            4. Nhập mã OTP (Verify 4-Digits)
+          </Button>
+        </View>
+      </View>
+
+      {/* Quick Component Preview */}
+      <View className="bg-white p-4 rounded-2xl border border-grey-200">
+        <Text className="font-sans-bold text-lg text-grey-900 mb-3">Preview Component</Text>
+        <InputGroup
+          size="lg"
+          label="Username"
+          placeholder="Nhập tài khoản"
+          leadingIcon={<UserIcon />}
+        />
+        <View className="h-3" />
+        <Button title="Button" size="lg" fullWidth />
+      </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: Spacing.lg,
-    paddingTop: 54,
-    paddingBottom: 40,
-    backgroundColor: Palette.grey[50],
-    gap: Spacing.md
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontWeight: "700",
-    color: Palette.grey[950],
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: Palette.grey[500],
-    marginBottom: 20,
-  },
-  card: {
-    backgroundColor: Palette.white,
-    padding: Spacing.lg,
-    borderRadius: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: Palette.grey[200],
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Palette.grey[900],
-    marginBottom: 6,
-  },
-  sectionCaption: {
-    fontSize: 13,
-    color: Palette.grey[500],
-    marginBottom: 16,
-  },
-  rowWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 12,
-  },
-  columnGap: {
-    gap: 14,
-  },
-  iconPlaceholder: {
-    fontSize: 14,
-  },
-});
