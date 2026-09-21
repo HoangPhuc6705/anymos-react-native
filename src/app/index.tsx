@@ -1,98 +1,87 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Button,
+  Input,
+  InputGroup
+} from "@/components/ui";
+import { AppText } from "@/components/ui/AppText";
+import { Palette, Spacing } from "@/constants/themes";
+import { useState } from "react";
+import { ScrollView, StyleSheet } from "react-native";
+import { UserOutline, LockOutline, EyeOutline, EyeClosedOutline } from 'solar-icon-set'
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+export default function Index() {
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <ScrollView contentContainerStyle={styles.container}>
+      <AppText>
+        Đăng nhập
+      </AppText>
+      <InputGroup
+        leadingIcon={<UserOutline />}
+        placeholder="John Doe"
+        label="Username" />
+      <InputGroup
+        leadingIcon={<LockOutline />}
+        trailingIcon={<EyeClosedOutline />}
+        label="Password" />
+      <Button
+        title="Đăng nhập"
+      />
+      <Button title="Tiếp tục với Google" variant="outline" />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    padding: Spacing.lg,
+    paddingTop: 54,
+    paddingBottom: 40,
+    backgroundColor: Palette.grey[50],
+    gap: Spacing.md
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: Palette.grey[950],
+    marginBottom: 4,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  headerSubtitle: {
+    fontSize: 14,
+    color: Palette.grey[500],
+    marginBottom: 20,
   },
-  title: {
-    textAlign: 'center',
+  card: {
+    backgroundColor: Palette.white,
+    padding: Spacing.lg,
+    borderRadius: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Palette.grey[200],
   },
-  code: {
-    textTransform: 'uppercase',
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Palette.grey[900],
+    marginBottom: 6,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  sectionCaption: {
+    fontSize: 13,
+    color: Palette.grey[500],
+    marginBottom: 16,
+  },
+  rowWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 12,
+  },
+  columnGap: {
+    gap: 14,
+  },
+  iconPlaceholder: {
+    fontSize: 14,
   },
 });
