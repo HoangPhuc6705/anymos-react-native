@@ -193,3 +193,72 @@ export function AnymosLogo({ width = 72, height = 60 }: { width?: number; height
     </Svg>
   );
 }
+
+/** Solar Menu Dots Bold - Figma #15:1005 */
+export function DotsIcon({ size = 24, color = Palette.grey[700] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="5" cy="12" r="2" fill={color} />
+      <Circle cx="12" cy="12" r="2" fill={color} />
+      <Circle cx="19" cy="12" r="2" fill={color} />
+    </Svg>
+  );
+}
+
+/** Solar Heart Bold - Figma #15:1021 */
+export function HeartIcon({ size = 24, color = Palette.violet[600] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
+/** Solar Heart Linear */
+export function HeartOutlineIcon({ size = 24, color = Palette.grey[700] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** Solar Lightbulb Linear - Figma #15:1027 */
+export function LightbulbIcon({ size = 24, color = Palette.grey[900] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 21h6m-4-3h2m-1-15a6 6 0 0 0-4 10.47V15a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.53A6 6 0 0 0 12 3z"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** Solar Chat Round Linear */
+export function ChatIcon({ size = 24, color = Palette.grey[700] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 3c-4.97 0-9 3.81-9 8.5 0 2.22.92 4.25 2.45 5.76L4.5 21l4.13-1.03C9.72 20.33 10.83 20.5 12 20.5c4.97 0 9-3.81 9-8.5S16.97 3 12 3z"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+

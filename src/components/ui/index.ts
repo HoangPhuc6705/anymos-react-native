@@ -5,4 +5,5 @@ export * from './checkbox';
 export * from './radio';
 export * from './switch';
 export * from './item';
+export * from './card';
 export * from './icons';

@@ -3,8 +3,15 @@ import { ScrollView, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import {
   Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
   InputGroup,
   Item,
+  PostCard,
   Switch,
 } from "@/components/ui";
 import { UserIcon } from "@/components/ui/icons";
@@ -17,6 +24,18 @@ export default function Index() {
   const [switch2, setSwitch2] = useState(false);
   const [itemSwitch, setItemSwitch] = useState(true);
   const [itemCheckbox, setItemCheckbox] = useState(false);
+  const [postLiked, setPostLiked] = useState(true);
+  const [likes, setLikes] = useState(12);
+
+  const toggleLike = () => {
+    if (postLiked) {
+      setLikes(likes - 1);
+      setPostLiked(false);
+    } else {
+      setLikes(likes + 1);
+      setPostLiked(true);
+    }
+  };
 
   return (
     <ScrollView contentContainerClassName="p-4 pt-14 pb-10 bg-grey-50 gap-4">
@@ -74,6 +93,53 @@ export default function Index() {
             4. Nhập mã OTP (Verify 4-Digits)
           </Button>
         </View>
+      </View>
+
+      {/* Card & PostCard Preview Section */}
+      <View className="bg-white p-4 rounded-2xl border border-grey-200 gap-3">
+        <Text className="font-sans-bold text-lg text-grey-900">
+          Preview Card & PostCard (Figma #15:1043)
+        </Text>
+        <Text className="font-sans text-xs text-grey-500">
+          Component Card theo chuẩn thiết kế mạng xã hội Anymos:
+        </Text>
+
+        {/* 1. PostCard Figma #15:1043 */}
+        <PostCard
+          authorName="Anonymouse User"
+          timestamp="1 hours ago"
+          content="Welcome! We're excited to have you here. Let's explore new possibilities together today."
+          likesCount={likes}
+          isLiked={postLiked}
+          onLikePress={toggleLike}
+          thinkingsCount={3}
+          onThinkingPress={() => alert("Thả thinking thành công!")}
+          onMorePress={() => alert("Mở tùy chọn bài viết")}
+        />
+
+        {/* 2. Compound Card Primitives */}
+        <Text className="font-sans-semibold text-sm text-grey-700 mt-2">
+          Compound Card Primitives:
+        </Text>
+        <Card variant="default">
+          <CardHeader
+            title="Thẻ thông báo"
+            description="Cập nhật phiên bản mới nhất v1.0.0"
+          />
+          <CardContent>
+            <Text className="font-sans text-sm text-grey-700 leading-5">
+              Hệ thống đã cập nhật toàn bộ các component chuẩn Figma: Button, Input, Checkbox, Radio, Switch, Item, và Card.
+            </Text>
+          </CardContent>
+          <CardFooter>
+            <Button size="sm" variant="default">
+              Xác nhận
+            </Button>
+            <Button size="sm" variant="ghost">
+              Bỏ qua
+            </Button>
+          </CardFooter>
+        </Card>
       </View>
 
       {/* Switch Preview Section */}
