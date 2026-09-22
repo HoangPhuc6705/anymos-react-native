@@ -48,7 +48,7 @@ export default function RegisterScreen() {
       setIsLoading(false);
       // Chuyển sang màn hình xác thực OTP kèm email
       router.push({
-        pathname: '/verify-otp',
+        pathname: '/otp-verify',
         params: { email: email || 'example@email.com' },
       });
     }, 1000);

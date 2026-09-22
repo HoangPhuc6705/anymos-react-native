@@ -32,7 +32,7 @@ export default function ForgotPasswordScreen() {
       setIsLoading(false);
       // Chuyển sang màn hình xác thực OTP và truyền email
       router.push({
-        pathname: '/verify-otp',
+        pathname: '/otp-verify',
         params: { email },
       });
     }, 1000);

@@ -18,7 +18,7 @@ import {
 } from '@/components/ui';
 import { Palette } from '@/constants/themes';
 
-export default function VerifyOtpScreen() {
+export default function OtpVerifyScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ email?: string }>();
   const email = params.email || 'hydransea17216@email.com';

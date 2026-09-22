@@ -100,14 +100,14 @@ export const Input = forwardRef<TextInput, InputProps>(
     const buttonTextSizeClass =
       size === 'sm' ? 'text-[10px]' : size === 'lg' ? 'text-sm' : 'text-xs';
 
-    // State classes
+    // State classes (keep border-2 constant across all states to prevent layout shift)
     const stateClass = disabled
-      ? 'bg-grey-100 border border-grey-200'
+      ? 'bg-grey-100 border-2 border-grey-200'
       : isError
       ? 'bg-white border-2 border-error'
       : isFocused
       ? 'bg-white border-2 border-violet-500'
-      : 'bg-white border border-grey-200';
+      : 'bg-white border-2 border-grey-200';
 
     return (
       <View
