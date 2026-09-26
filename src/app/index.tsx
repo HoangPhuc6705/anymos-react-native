@@ -229,3 +229,38 @@ export default function Index() {
     </ScrollView>
   );
 }
+// Test OK
+// import React, { useEffect, useState } from 'react';
+// import { View, Text, FlatList } from 'react-native';
+// import { supabase } from '../../supabase';
+//
+// export default function Index() {
+//
+//   const [data, setData] = useState<any[]>([]);
+//
+//   useEffect(() => {
+//     async function fetchData() {
+//       const { data, error } = await supabase.from('user_setting').select('*');
+//
+//       if (error) {
+//         console.error("Lỗi lấy dữ liệu:", error);
+//       } else {
+//         setData(data || []);
+//       }
+//     }
+//
+//     fetchData();
+//   }, []);
+//
+//   return (
+//       <View style={{ padding: 50 }}>
+//         <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Dữ liệu từ Supabase:</Text>
+//         <FlatList
+//             data={data}
+//             keyExtractor={(item, index) => index.toString()}
+//             renderItem={({ item }) => <Text>{JSON.stringify(item)}</Text>}
+//         />
+//       </View>
+//   );
+// }
+
