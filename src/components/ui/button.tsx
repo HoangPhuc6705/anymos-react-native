@@ -221,7 +221,11 @@ export default function AppButton({
     combo ?? (icon && !title && !children ? 'only-icon' : 'default');
   const iconColor = getButtonIconColor(effectiveVariant, isDark);
 
-  const content = children ?? (title ? (
+  // SAU
+const rawContent = children ?? title;
+const content =
+  typeof rawContent === 'string' || typeof rawContent === 'number' ? (
+    // children/title là text thuần -> luôn bọc trong <Text>
     <View className="px-1">
       <Text
         className={cn(
@@ -229,10 +233,13 @@ export default function AppButton({
           textClassName
         )}
       >
-        {title}
+        {rawContent}
       </Text>
     </View>
-  ) : null);
+  ) : (
+    // children là JSX tuỳ biến (đã tự bọc <Text> hoặc không phải text) -> giữ nguyên
+    rawContent ?? null
+  );
 
   return (
     <Pressable
