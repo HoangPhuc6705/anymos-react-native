@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    font-family: 'Open Sans', sans-serif;
+  }
+  /* Xóa viền outline mặc định của trình duyệt trên Web khi focus / hover */
+  input,
+  textarea {
+    outline: none !important;
+  }
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* LIGHT VIOLET (Light Mode) */
+  :root {
+    --background: 250 250 250; /* #FAFAFA */
+    --foreground: 23 23 23;    /* #171717 */
+    
+    --primary: 142 81 255;     /* #8E51FF */
+    --primary-foreground: 255 255 255; /* #FFFFFF */
+    
+    --secondary: 228 228 231;  /* #E4E4E7 */
+    --secondary-foreground: 39 39 42; /* #27272A */
+    
+    --surface: 255 255 255;    /* #FFFFFF */
+    --surface-variant: 244 244 245; /* #F4F4F5 */
+    
+    --accent: 196 180 255;     /* #C4B4FF - Dự đoán light mode */
+    --accent-foreground: 47 13 104; /* #2F0D68 */
+    
+    --mute: 228 228 231;       /* #E4E4E7 */
+    --mute-foreground: 113 113 122; /* #71717A */
+    
+    --destructive: 251 44 54;  /* #FB2C36 */
+    --destructive-foreground: 254 242 242; /* #FEF2F2 */
+    
+    --disabled: 228 228 231;   /* #E4E4E7 */
+    --disabled-foreground: 161 161 170; /* #A1A1AA */
+    
+    --border: 228 228 231;     /* #E4E4E7 */
+    --outline: 228 228 231;    
+    --ring: 166 132 255;       /* #A684FF */
+    --divider: 228 228 231;
+    
+    --success: 0 201 80;       /* #00C950 */
+    --warning: 255 105 0;      /* #FF6900 */
+    --error: 251 44 54;        /* #FB2C36 */
+    --info: 0 166 244;         /* #00A6F4 */
+    
+    --overlay: 0 0 0;          /* Kèm opacity ở class */
+  }
+
+  /* DARK VIOLET (Dark Mode) - CHÍNH XÁC TỪ FIGMA */
+  .dark {
+    --background: 23 23 23;    /* #171717 */
+    --foreground: 250 250 250; /* #FAFAFA */
+    
+    --primary: 142 81 255;     /* #8E51FF */
+    --primary-foreground: 255 255 255; /* #FFFFFF */
+    
+    --secondary: 39 39 42;     /* #27272A */
+    --secondary-foreground: 228 228 231; /* #E4E4E7 */
+    
+    --surface: 24 24 27;       /* #18181B */
+    --surface-variant: 39 39 42; /* #27272A */
+    
+    --accent: 47 13 104;       /* #2F0D68 */
+    --accent-foreground: 196 180 255; /* #C4B4FF */
+    
+    --mute: 159 159 169;       /* #9F9FA9 */
+    --mute-foreground: 159 159 169; /* #9F9FA9 */
+    
+    --destructive: 130 24 26;  /* #82181A */
+    --destructive-foreground: 254 242 242; /* #FEF2F2 */
+    
+    --disabled: 24 24 27;      /* #18181B */
+    --disabled-foreground: 82 82 92; /* #52525C */
+    
+    --border: 63 63 71;        /* #3F3F47 */
+    --outline: 63 63 71;       /* #3F3F47 */
+    --ring: 166 132 255;       /* #A684FF */
+    --divider: 39 39 42;       /* #27272A */
+    
+    --success: 0 201 80;       /* #00C950 */
+    --warning: 255 105 0;      /* #FF6900 */
+    --error: 251 44 54;        /* #FB2C36 */
+    --info: 0 166 244;         /* #00A6F4 */
+    
+    --overlay: 0 0 0;          /* #000000 - opacity 75% sẽ dùng bg-overlay/75 */
+  }
+}

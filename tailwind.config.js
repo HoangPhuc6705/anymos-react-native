@@ -2,71 +2,69 @@
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
-    "./app/**/*.{js,jsx,ts,tsx}",
-    "./components/**/*.{js,jsx,ts,tsx}",
+    "./App.{js,jsx,ts,tsx}",
   ],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
-      colors: {
-        violet: {
-          50: "#F5F3FF",
-          100: "#EDE9FE",
-          200: "#DDD6FE",
-          300: "#C4B5FD",
-          400: "#A78BFA",
-          500: "#8E51FF",
-          600: "#7C3AED",
-          700: "#6D28D9",
-          800: "#5B21B6",
-          900: "#4C1D95",
-          950: "#2E1065",
-        },
-        grey: {
-          50: "#FAFAFA",
-          100: "#F4F4F5",
-          200: "#E4E4E7",
-          300: "#D4D4D8",
-          400: "#9F9FA9",
-          500: "#71717B",
-          600: "#52525C",
-          700: "#3F3F46",
-          800: "#27272A",
-          900: "#18181B",
-          950: "#09090B",
-        },
-        brand: {
-          DEFAULT: "#7C3AED",
-          hover: "#6D28D9",
-          active: "#5B21B6",
-          light: "#EDE9FE",
-        },
-        error: {
-          DEFAULT: "#FB2C36",
-          dark: "#C10007",
-          muted: "#FEF2F2",
-        },
-        success: "#00C950",
-        warning: "#FE9A00",
-        info: "#00A6F4",
-      },
-      borderRadius: {
-        xs: "4px",
-        sm: "6px",
-        md: "8px",
-        lg: "12px",
-        xl: "16px",
-        "2xl": "20px",
-        "3xl": "24px",
-        pill: "9999px",
+      fontSize: {
+        base: ['17px', { lineHeight: '24px' }],
       },
       fontFamily: {
-        sans: ["Open Sans", "OpenSans-Regular", "sans-serif"],
-        "sans-medium": ["OpenSans-Medium", "Open Sans", "sans-serif"],
-        "sans-semibold": ["OpenSans-SemiBold", "Open Sans", "sans-serif"],
-        "sans-bold": ["OpenSans-Bold", "Open Sans", "sans-serif"],
+        sans: ["OpenSans_400Regular", "Open Sans", "sans-serif"],
+        "open-sans": ["OpenSans_400Regular", "Open Sans", "sans-serif"],
+        "open-sans-medium": ["OpenSans_500Medium", "Open Sans", "sans-serif"],
+        "open-sans-semibold": ["OpenSans_600SemiBold", "Open Sans", "sans-serif"],
+        "open-sans-bold": ["OpenSans_700Bold", "Open Sans", "sans-serif"],
+      },
+      colors: {
+        background: 'rgb(var(--background) / <alpha-value>)',
+        foreground: 'rgb(var(--foreground) / <alpha-value>)',
+        
+        primary: {
+          DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
+          foreground: 'rgb(var(--primary-foreground) / <alpha-value>)',
+        },
+        secondary: {
+          DEFAULT: 'rgb(var(--secondary) / <alpha-value>)',
+          foreground: 'rgb(var(--secondary-foreground) / <alpha-value>)',
+        },
+        surface: {
+          DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
+          variant: 'rgb(var(--surface-variant) / <alpha-value>)',
+        },
+        accent: {
+          DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
+          foreground: 'rgb(var(--accent-foreground) / <alpha-value>)',
+        },
+        mute: {
+          DEFAULT: 'rgb(var(--mute) / <alpha-value>)',
+          foreground: 'rgb(var(--mute-foreground) / <alpha-value>)',
+        },
+        destructive: {
+          DEFAULT: 'rgb(var(--destructive) / <alpha-value>)',
+          foreground: 'rgb(var(--destructive-foreground) / <alpha-value>)',
+        },
+        disabled: {
+          DEFAULT: 'rgb(var(--disabled) / <alpha-value>)',
+          foreground: 'rgb(var(--disabled-foreground) / <alpha-value>)',
+        },
+        
+        // Colors dùng chung
+        border: 'rgb(var(--border) / <alpha-value>)',
+        outline: 'rgb(var(--outline) / <alpha-value>)',
+        ring: 'rgb(var(--ring) / <alpha-value>)',
+        divider: 'rgb(var(--divider) / <alpha-value>)',
+        
+        // Feedback colors
+        success: 'rgb(var(--success) / <alpha-value>)',
+        warning: 'rgb(var(--warning) / <alpha-value>)',
+        error: 'rgb(var(--error) / <alpha-value>)',
+        info: 'rgb(var(--info) / <alpha-value>)',
+        overlay: 'rgb(var(--overlay) / <alpha-value>)',
       },
     },
   },
   plugins: [],
-};
+}
+

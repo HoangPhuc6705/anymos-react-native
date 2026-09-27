@@ -1,192 +1,268 @@
 import React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { clsx } from 'clsx';
 import {
   ActivityIndicator,
-  GestureResponderEvent,
   Pressable,
-  StyleProp,
   Text,
-  TextStyle,
+  useColorScheme,
   View,
-  ViewStyle,
+  type PressableProps,
 } from 'react-native';
-import { Palette } from '@/constants/themes';
+import { type ClassNameValue, twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassNameValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export const buttonVariants = cva(
+  'flex-row items-center justify-center',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary active:opacity-90',
+        secondary: 'bg-secondary active:opacity-80',
+        outline:
+          'bg-transparent border border-border active:bg-surface-variant',
+        ghost:
+          'bg-transparent active:bg-surface-variant',
+        destructive: 'bg-destructive active:opacity-90',
+        disabled: 'bg-disabled active:opacity-100',
+      },
+      size: {
+        sm: 'h-8 px-3 gap-1',
+        default: 'h-11 px-5 gap-1',
+        large: 'h-14 px-5 gap-1',
+      },
+      combo: {
+        default: '',
+        'only-icon': 'p-0 aspect-square',
+      },
+      rounded: {
+        none: 'rounded-none',
+        sm: 'rounded-sm',
+        default: 'rounded-md',
+        lg: 'rounded-lg',
+        full: 'rounded-full',
+      },
+    },
+    compoundVariants: [
+      { combo: 'only-icon', size: 'sm', className: 'w-8 h-8 px-0' },
+      { combo: 'only-icon', size: 'default', className: 'w-11 h-11 px-0' },
+      { combo: 'only-icon', size: 'large', className: 'w-14 h-14 px-0' },
+    ],
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+      combo: 'default',
+      rounded: 'full',
+    },
+  }
+);
+
+export const buttonTextVariants = cva(
+  'font-open-sans-semibold font-semibold text-center text-base',
+  {
+    variants: {
+      variant: {
+        default: 'text-primary-foreground',
+        secondary: 'text-secondary-foreground',
+        outline: 'text-foreground',
+        ghost: 'text-foreground',
+        destructive: 'text-destructive-foreground',
+        disabled: 'text-disabled-foreground',
+      },
+      size: {
+        sm: 'text-base',
+        default: 'text-base',
+        large: 'text-base',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  }
+);
+
+export const buttonIconSlotVariants = cva('items-center justify-center', {
+  variants: {
+    size: {
+      sm: 'w-4 h-4',
+      default: 'w-5 h-5',
+      large: 'w-6 h-6',
+    },
+  },
+  defaultVariants: {
+    size: 'default',
+  },
+});
+
+export const buttonIconSizes = {
+  sm: 16,
+  default: 20,
+  large: 24,
+} as const;
 
 export type ButtonVariant =
   | 'default'
   | 'secondary'
   | 'outline'
   | 'ghost'
-  | 'destructive';
+  | 'destructive'
+  | 'disabled';
 
-export type ButtonSize = 'sm' | 'default' | 'lg';
+export type ButtonSize = 'sm' | 'default' | 'large' | 'small' | 'lg';
+export type ButtonRounded = 'none' | 'sm' | 'default' | 'lg' | 'full';
+export type ButtonCombo = 'default' | 'only-icon';
 
-export interface ButtonProps {
-  /** Text label or custom child components */
-  children?: React.ReactNode;
-  /** Button title when not using children */
-  title?: string;
-  /** Visual style variant defined in Figma */
-  variant?: ButtonVariant;
-  /** Size variant matching Figma component specifications */
-  size?: ButtonSize;
-  /** If true, renders a square/circle button sized only for an icon */
-  iconOnly?: boolean;
-  /** Slot for icon before button label (Figma: Show Leading Icon) */
-  leadingIcon?: React.ReactNode;
-  /** Slot for icon after button label (Figma: Show Trailing Icon) */
-  trailingIcon?: React.ReactNode;
-  /** Disabled state */
-  disabled?: boolean;
-  /** Loading state with activity indicator */
-  loading?: boolean;
-  /** Make button stretch to 100% width of parent */
-  fullWidth?: boolean;
-  /** Tailwind className */
-  className?: string;
-  /** Custom container style */
-  style?: StyleProp<ViewStyle>;
-  /** Custom text style */
-  textStyle?: StyleProp<TextStyle>;
-  /** Press handler */
-  onPress?: (event: GestureResponderEvent) => void;
-  /** Accessibility label */
-  accessibilityLabel?: string;
-  /** Accessibility hint */
-  accessibilityHint?: string;
-  /** Test ID for automated tests */
-  testID?: string;
+type NormalizedSize = 'sm' | 'default' | 'large';
+
+/**
+ * Lấy mã màu tương ứng cho Icon / ActivityIndicator từ token màu của project
+ */
+export function getButtonIconColor(
+  variant: ButtonVariant = 'default',
+  isDark = false
+): string {
+  switch (variant) {
+    case 'default':
+      return '#FFFFFF'; // primary-foreground
+    case 'secondary':
+      return isDark ? '#E4E4E7' : '#27272A'; // secondary-foreground
+    case 'outline':
+    case 'ghost':
+      return isDark ? '#FAFAFA' : '#171717'; // foreground
+    case 'destructive':
+      return '#FEF2F2'; // destructive-foreground
+    case 'disabled':
+      return isDark ? '#52525C' : '#A1A1AA'; // disabled-foreground
+    default:
+      return '#FFFFFF';
+  }
 }
 
-const variantContainerClasses: Record<ButtonVariant, string> = {
-  default: 'bg-violet-500 active:bg-violet-600',
-  secondary: 'bg-grey-200 active:bg-grey-300',
-  outline: 'bg-transparent border border-grey-300 active:bg-grey-100',
-  ghost: 'bg-transparent active:bg-grey-100',
-  destructive: 'bg-error-dark active:bg-error',
-};
+export interface ButtonProps
+  extends Omit<PressableProps, 'children'>,
+    Omit<VariantProps<typeof buttonVariants>, 'size'> {
+  title?: string;
+  children?: React.ReactNode;
+  size?: ButtonSize;
+  leadingIcon?: React.ReactNode;
+  trailingIcon?: React.ReactNode;
+  icon?: React.ReactNode;
+  loading?: boolean;
+  className?: string;
+  textClassName?: string;
+}
 
-const variantTextClasses: Record<ButtonVariant, string> = {
-  default: 'text-white',
-  secondary: 'text-grey-800',
-  outline: 'text-grey-950',
-  ghost: 'text-grey-950',
-  destructive: 'text-white',
-};
+function normalizeSize(size?: ButtonProps['size']): NormalizedSize {
+  if (size === 'small') return 'sm';
+  if (size === 'lg') return 'large';
+  return size ?? 'default';
+}
 
-const spinnerColors: Record<ButtonVariant, string> = {
-  default: Palette.white,
-  secondary: Palette.grey[800],
-  outline: Palette.grey[950],
-  ghost: Palette.grey[950],
-  destructive: Palette.white,
-};
+function renderIcon(
+  iconNode: React.ReactNode,
+  normalizedSize: NormalizedSize,
+  defaultColor: string
+) {
+  if (!iconNode) return null;
 
-export function Button({
-  children,
+  if (React.isValidElement(iconNode)) {
+    const iconElement = iconNode as React.ReactElement<any>;
+    const defaultIconSize = buttonIconSizes[normalizedSize];
+    const propsToInject: Record<string, any> = {};
+
+    if (iconElement.props.size === undefined) {
+      propsToInject.size = defaultIconSize;
+    }
+    if (iconElement.props.color === undefined) {
+      propsToInject.color = defaultColor;
+    }
+
+    return (
+      <View className={buttonIconSlotVariants({ size: normalizedSize })}>
+        {React.cloneElement(iconElement, propsToInject)}
+      </View>
+    );
+  }
+
+  return (
+    <View className={buttonIconSlotVariants({ size: normalizedSize })}>
+      {iconNode}
+    </View>
+  );
+}
+
+export default function AppButton({
   title,
+  children,
   variant = 'default',
   size = 'default',
-  iconOnly = false,
+  combo,
+  rounded = 'full',
   leadingIcon,
   trailingIcon,
-  disabled = false,
+  icon,
   loading = false,
-  fullWidth = false,
-  className = '',
-  style,
-  textStyle,
-  onPress,
-  accessibilityLabel,
-  accessibilityHint,
-  testID,
+  disabled = false,
+  className,
+  textClassName,
+  ...props
 }: ButtonProps) {
-  const isDisabled = disabled || loading;
-  const content = title ?? children;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
-  // Size classes
-  const sizeContainerClass =
-    size === 'sm'
-      ? iconOnly
-        ? 'w-8 h-8'
-        : 'h-8 px-3'
-      : size === 'lg'
-      ? iconOnly
-        ? 'w-14 h-14'
-        : 'h-14 px-5'
-      : iconOnly
-      ? 'w-11 h-11'
-      : 'h-11 px-5';
+  const normalizedSize = normalizeSize(size);
+  const isDisabled = disabled || variant === 'disabled' || loading;
+  const effectiveVariant: ButtonVariant = disabled ? 'disabled' : variant ?? 'default';
+  const effectiveCombo =
+    combo ?? (icon && !title && !children ? 'only-icon' : 'default');
+  const iconColor = getButtonIconColor(effectiveVariant, isDark);
 
-  const textSizeClass =
-    size === 'sm' ? 'text-sm leading-5' : 'text-base leading-6';
-
-  const iconSlotClass =
-    size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
-
-  // Variant classes
-  const variantClass = isDisabled
-    ? 'bg-grey-100 opacity-60'
-    : variantContainerClasses[variant];
-
-  const textVariantClass = isDisabled
-    ? 'text-grey-400'
-    : variantTextClasses[variant];
-
-  const spinnerColor = isDisabled
-    ? Palette.grey[400]
-    : spinnerColors[variant];
+  const content = children ?? (title ? (
+    <View className="px-1">
+      <Text
+        className={cn(
+          buttonTextVariants({ variant: effectiveVariant, size: normalizedSize }),
+          textClassName
+        )}
+      >
+        {title}
+      </Text>
+    </View>
+  ) : null);
 
   return (
     <Pressable
-      testID={testID}
       accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled, busy: loading }}
-      accessibilityLabel={
-        accessibilityLabel || (typeof content === 'string' ? content : undefined)
-      }
-      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: isDisabled }}
       disabled={isDisabled}
-      onPress={onPress}
-      className={`flex-row items-center justify-center rounded-pill overflow-hidden ${
-        fullWidth ? 'w-full' : ''
-      } ${sizeContainerClass} ${variantClass} ${className}`}
-      style={style}
+      className={cn(
+        buttonVariants({
+          variant: effectiveVariant,
+          size: normalizedSize,
+          combo: effectiveCombo,
+          rounded,
+        }),
+        className
+      )}
+      {...props}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={spinnerColor} />
+        <ActivityIndicator size="small" color={iconColor} />
+      ) : effectiveCombo === 'only-icon' ? (
+        renderIcon(icon ?? leadingIcon ?? trailingIcon ?? children, normalizedSize, iconColor)
       ) : (
-        <View className="flex-row items-center justify-center gap-1">
-          {leadingIcon && (
-            <View className={`items-center justify-center ${iconSlotClass}`}>
-              {leadingIcon}
-            </View>
-          )}
-
-          {!iconOnly && content != null && (
-            <View className="px-1 items-center justify-center">
-              {typeof content === 'string' || typeof content === 'number' ? (
-                <Text
-                  numberOfLines={1}
-                  className={`font-sans-semibold text-center ${textSizeClass} ${textVariantClass}`}
-                  style={textStyle}
-                >
-                  {content}
-                </Text>
-              ) : (
-                content
-              )}
-            </View>
-          )}
-
-          {trailingIcon && !iconOnly && (
-            <View className={`items-center justify-center ${iconSlotClass}`}>
-              {trailingIcon}
-            </View>
-          )}
-        </View>
+        <>
+          {renderIcon(leadingIcon, normalizedSize, iconColor)}
+          {content}
+          {renderIcon(trailingIcon, normalizedSize, iconColor)}
+        </>
       )}
     </Pressable>
   );
 }
 
-export default Button;
+export { AppButton as Button };

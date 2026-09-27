@@ -1,24 +1,31 @@
-import '../../global.css';
-import { useEffect } from 'react';
-import { SplashScreen, Stack } from 'expo-router';
+import '@/global.css';
+
 import {
-  useFonts,
+  OpenSans_300Light,
   OpenSans_400Regular,
   OpenSans_500Medium,
   OpenSans_600SemiBold,
   OpenSans_700Bold,
+  OpenSans_800ExtraBold,
+  useFonts,
 } from '@expo-google-fonts/open-sans';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { useColorScheme } from 'react-native';
 
-// Giữ splash screen hiển thị trong khi đang nạp font
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
   const [loaded, error] = useFonts({
-    'Open Sans': OpenSans_400Regular,
-    'OpenSans-Regular': OpenSans_400Regular,
-    'OpenSans-Medium': OpenSans_500Medium,
-    'OpenSans-SemiBold': OpenSans_600SemiBold,
-    'OpenSans-Bold': OpenSans_700Bold,
+    OpenSans_300Light,
+    OpenSans_400Regular,
+    OpenSans_500Medium,
+    OpenSans_600SemiBold,
+    OpenSans_700Bold,
+    OpenSans_800ExtraBold,
   });
 
   useEffect(() => {
@@ -32,11 +39,9 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        animation: 'slide_from_right',
-      }}
-    />
+    <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
+      <Stack screenOptions={{ headerShown: false }} />
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    </ThemeProvider>
   );
 }

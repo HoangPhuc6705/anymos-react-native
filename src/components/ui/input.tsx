@@ -1,188 +1,231 @@
 import React, { forwardRef, useState } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { clsx } from 'clsx';
 import {
-  Platform,
-  Pressable,
-  StyleProp,
-  Text,
   TextInput,
-  TextInputProps,
-  TextStyle,
   View,
-  ViewStyle,
+  Text,
+  Platform,
+  useColorScheme,
+  type TextInputProps,
 } from 'react-native';
-import { Palette } from '@/constants/themes';
+import { type ClassNameValue, twMerge } from 'tailwind-merge';
 
-export type InputSize = 'sm' | 'default' | 'lg';
-
-export interface InputProps extends Omit<TextInputProps, 'size'> {
-  /** Size variant matching Figma specs: 'sm' (32px), 'default' (44px), 'lg' (56px) */
-  size?: InputSize;
-  /** Slot for icon at the start of the input (Figma: Show Input leading icon slot) */
-  leadingIcon?: React.ReactNode;
-  /** Slot for icon at the end of the input (Figma: Show Input trailing icon slot) */
-  trailingIcon?: React.ReactNode;
-  /** Text for an embedded trailing action button (e.g. "Gửi mã", "Send", "Apply") */
-  buttonName?: string;
-  /** Callback when the trailing action button is pressed */
-  onButtonPress?: () => void;
-  /** Disabled state for the trailing action button */
-  buttonDisabled?: boolean;
-  /** Error state for input border (Figma: State=Error) */
-  error?: boolean | string;
-  /** Disabled state */
-  disabled?: boolean;
-  /** Full width container */
-  fullWidth?: boolean;
-  /** Tailwind className for outer container */
-  className?: string;
-  /** Container style */
-  containerStyle?: StyleProp<ViewStyle>;
-  /** Text input style */
-  style?: StyleProp<TextStyle>;
-  /** Test ID */
-  testID?: string;
+export function cn(...inputs: ClassNameValue[]) {
+  return twMerge(clsx(inputs));
 }
 
-export const Input = forwardRef<TextInput, InputProps>(
+export const inputContainerVariants = cva(
+  'flex-row items-center px-4 gap-3 rounded-full bg-transparent outline-none',
+  {
+    variants: {
+      size: {
+        sm: 'h-8',
+        default: 'h-11',
+        large: 'h-14',
+      },
+      state: {
+        default: 'border border-border',
+        focus: 'border-2 border-primary',
+        error: 'border-2 border-error',
+        disabled: 'border border-disabled bg-disabled/20 opacity-60',
+      },
+    },
+    defaultVariants: {
+      size: 'default',
+      state: 'default',
+    },
+  }
+);
+
+export const inputTextVariants = cva(
+  'flex-1 h-full font-open-sans text-foreground p-0 outline-none focus:outline-none focus-visible:outline-none',
+  {
+  variants: {
+    size: {
+      sm: 'text-sm',
+      default: 'text-base',
+      large: 'text-base',
+    },
+  },
+  defaultVariants: {
+    size: 'default',
+  },
+});
+
+export const inputIconSlotVariants = cva('items-center justify-center', {
+  variants: {
+    size: {
+      sm: 'w-4 h-4',
+      default: 'w-5 h-5',
+      large: 'w-6 h-6',
+    },
+  },
+  defaultVariants: {
+    size: 'default',
+  },
+});
+
+export const inputIconSizes = {
+  sm: 16,
+  default: 20,
+  large: 24,
+} as const;
+
+export type InputSize = 'sm' | 'default' | 'large' | 'small' | 'lg';
+export type InputState = 'default' | 'focus' | 'error' | 'disabled';
+
+type NormalizedInputSize = 'sm' | 'default' | 'large';
+
+function normalizeInputSize(size?: InputSize): NormalizedInputSize {
+  if (size === 'small') return 'sm';
+  if (size === 'lg') return 'large';
+  return size ?? 'default';
+}
+
+export interface InputProps
+  extends Omit<TextInputProps, 'size'>,
+    Omit<VariantProps<typeof inputContainerVariants>, 'size' | 'state'> {
+  size?: InputSize;
+  state?: InputState;
+  error?: boolean | string;
+  leadingIcon?: React.ReactNode;
+  trailingIcon?: React.ReactNode;
+  containerClassName?: string;
+  inputClassName?: string;
+  className?: string;
+}
+
+function renderInputIcon(
+  iconNode: React.ReactNode,
+  normalizedSize: NormalizedInputSize,
+  defaultColor: string
+) {
+  if (!iconNode) return null;
+
+  if (React.isValidElement(iconNode)) {
+    const iconElement = iconNode as React.ReactElement<any>;
+    const defaultIconSize = inputIconSizes[normalizedSize];
+    const propsToInject: Record<string, any> = {};
+
+    if (iconElement.props.size === undefined) {
+      propsToInject.size = defaultIconSize;
+    }
+    if (iconElement.props.color === undefined) {
+      propsToInject.color = defaultColor;
+    }
+
+    return (
+      <View className={inputIconSlotVariants({ size: normalizedSize })}>
+        {React.cloneElement(iconElement, propsToInject)}
+      </View>
+    );
+  }
+
+  return (
+    <View className={inputIconSlotVariants({ size: normalizedSize })}>
+      {iconNode}
+    </View>
+  );
+}
+
+const AppInput = forwardRef<TextInput, InputProps>(
   (
     {
       size = 'default',
+      state,
+      error,
       leadingIcon,
       trailingIcon,
-      buttonName,
-      onButtonPress,
-      buttonDisabled = false,
-      error = false,
-      disabled = false,
-      fullWidth = true,
-      className = '',
-      containerStyle,
-      style,
-      placeholderTextColor = Palette.grey[500],
+      containerClassName,
+      inputClassName,
+      className,
+      editable = true,
+      placeholderTextColor,
       onFocus,
       onBlur,
-      testID,
-      ...rest
+      ...props
     },
     ref
   ) => {
     const [isFocused, setIsFocused] = useState(false);
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
 
-    const handleFocus: TextInputProps['onFocus'] = (e) => {
-      setIsFocused(true);
-      onFocus?.(e);
-    };
+    const normalizedSize = normalizeInputSize(size);
+    const hasError = Boolean(error);
+    const isDisabled = editable === false;
 
-    const handleBlur: TextInputProps['onBlur'] = (e) => {
-      setIsFocused(false);
-      onBlur?.(e);
-    };
+    const effectiveState: InputState = isDisabled
+      ? 'disabled'
+      : (state ?? (hasError ? 'error' : isFocused ? 'focus' : 'default'));
 
-    const isError = Boolean(error);
-
-    // Size classes
-    const sizeContainerClass =
-      size === 'sm' ? 'h-8 px-3' : size === 'lg' ? 'h-14 px-4' : 'h-11 px-4';
-
-    const inputSizeClass =
-      size === 'sm' ? 'text-sm leading-5' : 'text-base leading-6';
-
-    const iconSizeClass =
-      size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
-
-    const buttonSizeClass =
-      size === 'sm'
-        ? 'px-2 h-6'
-        : size === 'lg'
-        ? 'px-4 h-9'
-        : 'px-3 h-7';
-
-    const buttonTextSizeClass =
-      size === 'sm' ? 'text-[10px]' : size === 'lg' ? 'text-sm' : 'text-xs';
-
-    // State classes (keep border-2 constant across all states to prevent layout shift)
-    const stateClass = disabled
-      ? 'bg-grey-100 border-2 border-grey-200'
-      : isError
-      ? 'bg-white border-2 border-error'
-      : isFocused
-      ? 'bg-white border-2 border-violet-500'
-      : 'bg-white border-2 border-grey-200';
+    const defaultPlaceholderColor = isDark ? '#9F9FA9' : '#71717A'; // mute-foreground
+    const iconColor =
+      effectiveState === 'error'
+        ? '#FB2C36' // error
+        : effectiveState === 'focus'
+        ? '#8E51FF' // primary
+        : isDark
+        ? '#9F9FA9'
+        : '#71717A';
 
     return (
-      <View
-        testID={testID}
-        className={`flex-row items-center rounded-pill gap-3 ${
-          fullWidth ? 'w-full' : ''
-        } ${sizeContainerClass} ${stateClass} ${className}`}
-        style={containerStyle}
-      >
-        {/* Leading Icon Slot */}
-        {leadingIcon && (
-          <View className={`items-center justify-center ${iconSizeClass}`}>
-            {leadingIcon}
-          </View>
-        )}
-
-        {/* Text Input */}
-        <TextInput
-          ref={ref}
-          editable={!disabled}
-          placeholderTextColor={placeholderTextColor}
-          underlineColorAndroid="transparent"
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          className={`flex-1 font-sans py-0 ${inputSizeClass} ${
-            disabled ? 'text-grey-400' : 'text-grey-950'
-          }`}
-          style={[
-            ...Platform.select({
-              web: [
-                {
-                  outlineStyle: 'none' as any,
-                  outlineWidth: 0,
-                },
-              ],
-              default: [],
+      <View className="w-full">
+        <View
+          className={cn(
+            inputContainerVariants({
+              size: normalizedSize,
+              state: effectiveState,
             }),
-            style,
-          ]}
-          {...rest}
-        />
+            containerClassName,
+            className
+          )}
+        >
+          {renderInputIcon(leadingIcon, normalizedSize, iconColor)}
 
-        {/* Embedded Button Name Slot */}
-        {buttonName && (
-          <Pressable
-            accessibilityRole="button"
-            disabled={disabled || buttonDisabled}
-            onPress={onButtonPress}
-            className={`rounded-pill items-center justify-center ${buttonSizeClass} ${
-              disabled || buttonDisabled
-                ? 'bg-grey-200'
-                : 'bg-violet-500 active:bg-violet-600'
-            }`}
-          >
-            <Text
-              className={`font-sans-semibold ${buttonTextSizeClass} ${
-                disabled || buttonDisabled ? 'text-grey-400' : 'text-white'
-              }`}
-            >
-              {buttonName}
-            </Text>
-          </Pressable>
-        )}
+          <TextInput
+            ref={ref}
+            editable={editable}
+            placeholderTextColor={placeholderTextColor ?? defaultPlaceholderColor}
+            onFocus={(e) => {
+              setIsFocused(true);
+              onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              onBlur?.(e);
+            }}
+            style={[
+              Platform.select({
+                web: {
+                  outlineStyle: 'none',
+                  boxShadow: 'none',
+                } as any,
+              }),
+              props.style,
+            ]}
+            className={cn(
+              inputTextVariants({ size: normalizedSize }),
+              inputClassName
+            )}
+            {...props}
+          />
 
-        {/* Trailing Icon Slot */}
-        {trailingIcon && (
-          <View className={`items-center justify-center ${iconSizeClass}`}>
-            {trailingIcon}
-          </View>
+          {renderInputIcon(trailingIcon, normalizedSize, iconColor)}
+        </View>
+
+        {typeof error === 'string' && error.length > 0 && (
+          <Text className="text-error text-xs mt-1 ml-4 font-normal">
+            {error}
+          </Text>
         )}
       </View>
     );
   }
 );
 
-Input.displayName = 'Input';
+AppInput.displayName = 'AppInput';
 
-export default Input;
+export default AppInput;
+export { AppInput as Input };
