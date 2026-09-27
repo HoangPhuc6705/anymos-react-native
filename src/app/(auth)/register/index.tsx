@@ -1,3 +1,4 @@
+// src/app/(auth)/register/index.tsx
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -23,8 +24,23 @@ import {
 } from '@/components/ui';
 import { Palette } from '@/constants/themes';
 
+// Regex kiểm tra định dạng email cơ bản
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Username: chỉ cho phép chữ, số, dấu chấm và gạch dưới (khớp cột `user.username` VARCHAR(50))
+const USERNAME_REGEX = /^[a-zA-Z0-9._]+$/;
+
+interface RegisterFormErrors {
+  username?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  agreeTerms?: string;
+}
+
 export default function RegisterScreen() {
   const router = useRouter();
+
+  // --- Form state (khớp bảng `user`: username, email, password_hash) ---
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,26 +48,87 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+
+  // --- UI state ---
+  const [errors, setErrors] = useState<RegisterFormErrors>({});
+  const [formError, setFormError] = useState(''); // lỗi trả về từ API (vd: username/email đã tồn tại)
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = () => {
+  const clearFieldError = (field: keyof RegisterFormErrors) => {
+    setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
+  };
+
+  const validate = (): boolean => {
+    const nextErrors: RegisterFormErrors = {};
+
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername) {
+      nextErrors.username = 'Vui lòng nhập tên đăng nhập.';
+    } else if (trimmedUsername.length < 3 || trimmedUsername.length > 50) {
+      nextErrors.username = 'Tên đăng nhập phải từ 3 đến 50 ký tự.';
+    } else if (!USERNAME_REGEX.test(trimmedUsername)) {
+      nextErrors.username = 'Tên đăng nhập chỉ gồm chữ, số, dấu chấm và gạch dưới.';
+    }
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      nextErrors.email = 'Vui lòng nhập email.';
+    } else if (!EMAIL_REGEX.test(trimmedEmail)) {
+      nextErrors.email = 'Email không đúng định dạng.';
+    }
+
+    if (!password) {
+      nextErrors.password = 'Vui lòng nhập mật khẩu.';
+    } else if (password.length < 6) {
+      nextErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự.';
+    }
+
+    if (!confirmPassword) {
+      nextErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu.';
+    } else if (confirmPassword !== password) {
+      nextErrors.confirmPassword = 'Mật khẩu xác nhận không khớp.';
+    }
+
     if (!agreeTerms) {
-      alert('Vui lòng đồng ý với Điều khoản và Chính sách bảo mật!');
-      return;
+      nextErrors.agreeTerms = 'Bạn cần đồng ý Điều khoản & Chính sách bảo mật.';
     }
-    if (password !== confirmPassword) {
-      alert('Mật khẩu xác nhận không khớp!');
-      return;
-    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleRegister = async () => {
+    setFormError('');
+    if (!validate()) return;
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      // Chuyển sang màn hình xác thực OTP kèm email
+    try {
+      // TODO: Gọi API đăng ký thật tại đây, ví dụ:
+      // const res = await authApi.register({
+      //   username: username.trim(),
+      //   email: email.trim(),
+      //   password,
+      // });
+      // - BE tạo record trong bảng `user` (username/email UNIQUE) và gửi OTP về email
+      // - Nếu BE trả 409 (username/email đã tồn tại) -> hiển thị lỗi tương ứng ở đúng field
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // giả lập gọi API
+
+      // Đăng ký thành công -> chuyển sang màn xác thực OTP kèm email vừa đăng ký
       router.push({
         pathname: '/otp-verify',
-        params: { email: email || 'example@email.com' },
+        params: { email: email.trim() },
       });
-    }, 1000);
+    } catch (err: any) {
+      // TODO: map lỗi thật từ backend, vd:
+      // - 409 -> "Tên đăng nhập hoặc email đã được sử dụng"
+      setFormError(err?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleRegister = () => {
+    // TODO: Tích hợp Google OAuth (expo-auth-session / firebase)
   };
 
   return (
@@ -60,7 +137,7 @@ export default function RegisterScreen() {
       className="flex-1 bg-white"
     >
       <ScrollView
-        contentContainerClassName="flex-grow px-6 pt-11 pb-8 justify-between"
+        contentContainerClassName="flex-grow px-6 pt-11 pb-8"
         keyboardShouldPersistTaps="handled"
       >
         {/* Top Bar: Back Button */}
@@ -82,39 +159,68 @@ export default function RegisterScreen() {
             <AnymosLogo />
           </View>
           <Text className="font-sans-bold text-2xl text-grey-900 mb-2 text-center">
-            Join us today!
+            Tạo tài khoản mới!
           </Text>
           <Text className="font-sans text-base text-grey-600 text-center leading-6">
-            Create your account in just a few steps.
+            Chỉ vài bước đơn giản để bắt đầu.
           </Text>
         </View>
+
+        {/* API error banner - hiển thị lỗi trả về từ backend */}
+        {formError ? (
+          <View className="bg-red-50 border border-error rounded-2xl px-4 py-3 mb-4">
+            <Text className="font-sans text-sm text-error text-center">
+              {formError}
+            </Text>
+          </View>
+        ) : null}
 
         {/* Form Fields */}
         <View className="gap-4 mb-7">
           <InputGroup
-            label="Username"
-            placeholder="Username"
+            size="large"
+            label="Tên đăng nhập"
+            placeholder="Tên đăng nhập"
             value={username}
-            onChangeText={setUsername}
+            onChangeText={(text) => {
+              setUsername(text);
+              clearFieldError('username');
+            }}
             autoCapitalize="none"
+            autoCorrect={false}
             leadingIcon={<UserIcon size={20} />}
+            error={errors.username}
           />
 
           <InputGroup
+            size="large"
             label="Email"
             placeholder="example@gmail.com"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              clearFieldError('email');
+            }}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
             leadingIcon={<MailIcon size={20} />}
+            error={errors.email}
           />
 
           <InputGroup
-            label="Password"
-            placeholder="Password"
+            size="large"
+            label="Mật khẩu"
+            placeholder="Mật khẩu"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              clearFieldError('password');
+              // Nếu confirmPassword đã nhập trước đó và giờ khớp lại -> tự xoá lỗi confirm
+              if (errors.confirmPassword && text === confirmPassword) {
+                clearFieldError('confirmPassword');
+              }
+            }}
             secureTextEntry={!showPassword}
             autoCapitalize="none"
             leadingIcon={<LockIcon size={20} />}
@@ -122,6 +228,8 @@ export default function RegisterScreen() {
               <Pressable
                 onPress={() => setShowPassword(!showPassword)}
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
                 {showPassword ? (
                   <EyeIcon size={20} color={Palette.violet[500]} />
@@ -130,13 +238,18 @@ export default function RegisterScreen() {
                 )}
               </Pressable>
             }
+            error={errors.password}
           />
 
           <InputGroup
-            label="Confirm password"
-            placeholder="Confirm password"
+            size="large"
+            label="Xác nhận mật khẩu"
+            placeholder="Xác nhận mật khẩu"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              clearFieldError('confirmPassword');
+            }}
             secureTextEntry={!showConfirmPassword}
             autoCapitalize="none"
             leadingIcon={<LockIcon size={20} />}
@@ -144,6 +257,10 @@ export default function RegisterScreen() {
               <Pressable
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+                }
               >
                 {showConfirmPassword ? (
                   <EyeIcon size={20} color={Palette.violet[500]} />
@@ -152,15 +269,25 @@ export default function RegisterScreen() {
                 )}
               </Pressable>
             }
+            error={errors.confirmPassword}
           />
 
           {/* Terms Checkbox */}
           <View className="mt-1">
             <Checkbox
               checked={agreeTerms}
-              onChange={setAgreeTerms}
-              label="I accept the Terms & Privacy Policy."
+              onChange={(checked) => {
+                setAgreeTerms(checked);
+                clearFieldError('agreeTerms');
+              }}
+              label="Tôi đồng ý với Điều khoản & Chính sách bảo mật."
+              error={errors.agreeTerms}
             />
+            {errors.agreeTerms ? (
+              <Text className="font-sans text-xs text-error mt-1 ml-8">
+                {errors.agreeTerms}
+              </Text>
+            ) : null}
           </View>
 
           {/* Action Buttons */}
@@ -168,33 +295,33 @@ export default function RegisterScreen() {
             <Button
               variant="default"
               size="lg"
-              fullWidth
               loading={isLoading}
               onPress={handleRegister}
+              className="w-full"
             >
-              Create account
+              Tạo tài khoản
             </Button>
 
             <Button
               variant="outline"
               size="lg"
-              fullWidth
               leadingIcon={<GoogleIcon size={20} />}
-              onPress={() => alert('Đăng ký bằng Google')}
+              onPress={handleGoogleRegister}
+              className="w-full"
             >
-              Continue with Google
+              Tiếp tục với Google
             </Button>
           </View>
         </View>
 
-        {/* Footer: Login Redirect */}
+        {/* Footer: Login Redirect - đã lên ngay dưới nhóm nút, không còn dính đáy màn hình */}
         <View className="flex-row items-center justify-center gap-1 mt-4">
           <Text className="font-sans text-base text-grey-900">
-            Already have an account?{' '}
+            Đã có tài khoản?{' '}
           </Text>
           <Pressable onPress={() => router.push('/login')} hitSlop={8}>
             <Text className="font-sans-semibold text-base text-violet-600">
-              Login
+              Đăng nhập
             </Text>
           </Pressable>
         </View>
