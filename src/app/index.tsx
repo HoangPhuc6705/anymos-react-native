@@ -1,98 +1,64 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+import React from 'react';
+import { View, Text } from 'react-native';
+import { router } from 'expo-router';
+import AppButton from '@/components/ui/button';
+import { ChatRoundIcon } from '@solar-icons/react-native/bold/chat-round';
+import { UsersGroupTwoRoundedIcon } from '@solar-icons/react-native/bold/users-group-two-rounded';
+import { BellIcon } from '@solar-icons/react-native/bold/bell';
 
 export default function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <View className="flex-1 items-center justify-center gap-6 p-6 bg-white">
+      <View className="items-center gap-2">
+        <Text className="text-3xl font-bold text-[#8E51FF] font-open-sans-bold">
+          WhatsupApp
+        </Text>
+        <Text className="text-sm text-[#71717A] text-center font-open-sans">
+          Thiết kế màn hình Chat từ Figma (Node 13:15)
+        </Text>
+      </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <View className="w-full gap-3 max-w-sm">
+        <AppButton
+          title="Mở giao diện Chat (Hermione)"
+          leadingIcon={<ChatRoundIcon size={20} color="#FFFFFF" />}
+          rounded="full"
+          variant="default"
+          size="large"
+          className="w-full"
+          onPress={() => router.push('/(feat)/chatting' as any)}
+        />
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        <AppButton
+          title="Hộp thoại tin nhắn (Conversations)"
+          leadingIcon={<ChatRoundIcon size={20} color="#09090B" />}
+          rounded="full"
+          variant="secondary"
+          size="large"
+          className="w-full"
+          onPress={() => router.push('/(feat)/friend-chat' as any)}
+        />
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        <AppButton
+          title="Danh sách bạn bè (Friends List)"
+          leadingIcon={<UsersGroupTwoRoundedIcon size={20} color="#09090B" />}
+          rounded="full"
+          variant="secondary"
+          size="large"
+          className="w-full"
+          onPress={() => router.push('/(feat)/friends' as any)}
+        />
+
+        <AppButton
+          title="Thông báo (Notifications)"
+          leadingIcon={<BellIcon size={20} color="#09090B" />}
+          rounded="full"
+          variant="secondary"
+          size="large"
+          className="w-full"
+          onPress={() => router.push('/(feat)/notification' as any)}
+        />
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
