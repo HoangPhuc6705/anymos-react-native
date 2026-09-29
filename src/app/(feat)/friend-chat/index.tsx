@@ -166,6 +166,8 @@ export default function FriendChatScreen() {
       router.push('/(feat)/friends' as any);
     } else if (tab === 'inbox') {
       router.push('/(feat)/notification' as any);
+    } else if (tab === 'menu') {
+      router.push('/(feat)/settings' as any);
     }
   }, []);
 

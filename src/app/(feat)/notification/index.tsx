@@ -161,6 +161,8 @@ export default function NotificationScreen() {
             router.push('/(feat)/friend-chat' as any);
         } else if (tab === 'groups') {
             router.push('/(feat)/friends' as any);
+        } else if (tab === 'menu') {
+            router.push('/(feat)/settings' as any);
         }
     }, []);
 
