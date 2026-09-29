@@ -1,21 +1,14 @@
-import React, { useState } from 'react';
+import { AuthScreen } from '@/components/auth/AuthScreen';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import {
-  ArrowLeftIcon,
-  Button,
-  InputGroup,
-  KeyUnlockedIcon,
-  MailIcon,
+    Button,
+    InputGroup,
+    KeyUnlockedIcon,
+    MailIcon
 } from '@/components/ui';
 import { Palette } from '@/constants/themes';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { View } from 'react-native';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -39,45 +32,13 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-white"
+    <AuthScreen
+      title="Reset your password"
+      description="Enter your email and we’ll send a verification code to get you back in."
+      onBack={() => router.back()}
+      headerIcon={<KeyUnlockedIcon size={38} color={Palette.violet[500]} />}
     >
-      <ScrollView
-        contentContainerClassName="flex-grow px-6 pt-11 pb-8 justify-between"
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Top Bar: Back Button */}
-        <View className="flex-row items-center mb-4">
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            className="w-10 h-10 justify-center items-start"
-            accessibilityRole="button"
-            accessibilityLabel="Quay lại"
-          >
-            <ArrowLeftIcon size={24} />
-          </Pressable>
-        </View>
-
-        {/* Center Section: Icon, Title, Form */}
-        <View className="items-center justify-center py-5">
-          {/* Key Unlocked Icon 56x56 */}
-          <View className="w-20 h-20 rounded-pill bg-violet-50 items-center justify-center mb-6">
-            <KeyUnlockedIcon size={56} color={Palette.violet[500]} />
-          </View>
-
-          {/* Heading */}
-          <Text className="font-sans-bold text-2xl text-grey-900 mb-2 text-center">
-            Forgot password?
-          </Text>
-          <Text className="font-sans text-base text-grey-600 text-center leading-6 mb-8 px-2">
-            Don’t worry! Enter your registered email address and we’ll send you
-            instructions to reset it.
-          </Text>
-
-          {/* Email Input */}
-          <View className="w-full gap-5">
+      <View className="w-full gap-5">
             <InputGroup
               label="Email"
               placeholder="example@gmail.com"
@@ -91,19 +52,13 @@ export default function ForgotPasswordScreen() {
             <Button
               variant="default"
               size="lg"
-              fullWidth
+              className="mt-2 w-full"
               loading={isLoading}
               onPress={handleSendCode}
-              className="mt-2"
             >
               Send Verification Code
             </Button>
-          </View>
-        </View>
-
-        {/* Bottom space filler */}
-        <View className="h-10" />
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </AuthScreen>
   );
 }

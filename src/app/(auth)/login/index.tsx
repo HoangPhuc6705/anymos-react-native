@@ -1,15 +1,5 @@
-import React, { useState } from 'react';
+import { AuthScreen } from '@/components/auth/AuthScreen';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import {
-  AnymosLogo,
   Button,
   Checkbox,
   EyeClosedIcon,
@@ -20,6 +10,9 @@ import {
   UserIcon,
 } from '@/components/ui';
 import { Palette } from '@/constants/themes';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -38,29 +31,23 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-white"
-    >
-      <ScrollView
-        contentContainerClassName="flex-grow px-6 pt-12 pb-8 justify-between"
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Top Section: Logo & Header */}
-        <View className="items-center mb-7">
-          <View className="mb-5 items-center justify-center">
-            <AnymosLogo />
-          </View>
-          <Text className="font-sans-bold text-2xl text-grey-900 mb-2 text-center">
-            Login account
+    <AuthScreen
+      title="Welcome back"
+      description="Sign in to pick up where you left off."
+      footer={
+        <View className="flex-row items-center justify-center gap-1">
+          <Text className="font-open-sans text-sm text-[#52525C]">
+            Don’t have an account?{' '}
           </Text>
-          <Text className="font-sans text-base text-grey-600 text-center leading-6">
-            Welcome back! Please sign in to continue.
-          </Text>
+          <Pressable onPress={() => router.push('/register')} hitSlop={8}>
+            <Text className="font-open-sans-semibold text-sm text-[#6D28D9]">
+              Register
+            </Text>
+          </Pressable>
         </View>
-
-        {/* Middle Section: Form Fields */}
-        <View className="gap-4 mb-8">
+      }
+    >
+      <View className="gap-4">
           <InputGroup
             label="Username"
             placeholder="Username"
@@ -95,7 +82,7 @@ export default function LoginScreen() {
           />
 
           {/* Row: Remember Me & Forgot Password */}
-          <View className="flex-row items-center justify-between mt-1">
+          <View className="mt-1 flex-row items-center justify-between">
             <Checkbox
               checked={rememberMe}
               onChange={setRememberMe}
@@ -112,11 +99,11 @@ export default function LoginScreen() {
           </View>
 
           {/* Action Buttons */}
-          <View className="gap-3 mt-3">
+          <View className="mt-3 gap-3">
             <Button
               variant="default"
               size="lg"
-              fullWidth
+              className="w-full"
               loading={isLoading}
               onPress={handleLogin}
             >
@@ -126,27 +113,15 @@ export default function LoginScreen() {
             <Button
               variant="outline"
               size="lg"
-              fullWidth
+              className="w-full"
               leadingIcon={<GoogleIcon size={20} />}
               onPress={() => alert('Đăng nhập bằng Google')}
             >
               Continue with Google
             </Button>
           </View>
-        </View>
 
-        {/* Footer: Register Redirect */}
-        <View className="flex-row items-center justify-center gap-1 mt-4">
-          <Text className="font-sans text-base text-grey-900">
-            Don’t have an account?{' '}
-          </Text>
-          <Pressable onPress={() => router.push('/register')} hitSlop={8}>
-            <Text className="font-sans-semibold text-base text-violet-600">
-              Register
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </AuthScreen>
   );
 }

@@ -1,27 +1,19 @@
-import React, { useState } from 'react';
+import { AuthScreen } from '@/components/auth/AuthScreen';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import {
-  AnymosLogo,
-  ArrowLeftIcon,
-  Button,
-  Checkbox,
-  EyeClosedIcon,
-  EyeIcon,
-  GoogleIcon,
-  InputGroup,
-  LockIcon,
-  MailIcon,
-  UserIcon,
+    Button,
+    Checkbox,
+    EyeClosedIcon,
+    EyeIcon,
+    GoogleIcon,
+    InputGroup,
+    LockIcon,
+    MailIcon,
+    UserIcon,
 } from '@/components/ui';
 import { Palette } from '@/constants/themes';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -55,42 +47,24 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-white"
-    >
-      <ScrollView
-        contentContainerClassName="flex-grow px-6 pt-11 pb-8 justify-between"
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Top Bar: Back Button */}
-        <View className="flex-row items-center mb-2">
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            className="w-10 h-10 justify-center items-start"
-            accessibilityRole="button"
-            accessibilityLabel="Quay lại"
-          >
-            <ArrowLeftIcon size={24} />
+    <AuthScreen
+      title="Create your account"
+      description="A few details and you’re ready to connect."
+      onBack={() => router.back()}
+      footer={
+        <View className="flex-row items-center justify-center gap-1">
+          <Text className="font-open-sans text-sm text-[#52525C]">
+            Already have an account?{' '}
+          </Text>
+          <Pressable onPress={() => router.push('/login')} hitSlop={8}>
+            <Text className="font-open-sans-semibold text-sm text-[#6D28D9]">
+              Login
+            </Text>
           </Pressable>
         </View>
-
-        {/* Header: Logo & Title */}
-        <View className="items-center mb-6">
-          <View className="mb-4 items-center justify-center">
-            <AnymosLogo />
-          </View>
-          <Text className="font-sans-bold text-2xl text-grey-900 mb-2 text-center">
-            Join us today!
-          </Text>
-          <Text className="font-sans text-base text-grey-600 text-center leading-6">
-            Create your account in just a few steps.
-          </Text>
-        </View>
-
-        {/* Form Fields */}
-        <View className="gap-4 mb-7">
+      }
+    >
+      <View className="gap-4">
           <InputGroup
             label="Username"
             placeholder="Username"
@@ -168,7 +142,7 @@ export default function RegisterScreen() {
             <Button
               variant="default"
               size="lg"
-              fullWidth
+              className="w-full"
               loading={isLoading}
               onPress={handleRegister}
             >
@@ -178,27 +152,15 @@ export default function RegisterScreen() {
             <Button
               variant="outline"
               size="lg"
-              fullWidth
+              className="w-full"
               leadingIcon={<GoogleIcon size={20} />}
               onPress={() => alert('Đăng ký bằng Google')}
             >
               Continue with Google
             </Button>
           </View>
-        </View>
 
-        {/* Footer: Login Redirect */}
-        <View className="flex-row items-center justify-center gap-1 mt-4">
-          <Text className="font-sans text-base text-grey-900">
-            Already have an account?{' '}
-          </Text>
-          <Pressable onPress={() => router.push('/login')} hitSlop={8}>
-            <Text className="font-sans-semibold text-base text-violet-600">
-              Login
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </AuthScreen>
   );
 }
