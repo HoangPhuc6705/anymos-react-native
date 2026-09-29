@@ -23,6 +23,9 @@ import {
   UserIcon,
 } from '@/components/ui';
 import { Palette } from '@/constants/themes';
+import { useAuth } from '@/context/auth-context';
+import { ApiError } from '@/services/api';
+import * as authApi from '@/services/auth';
 
 // Regex kiểm tra định dạng email cơ bản
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,6 +42,7 @@ interface RegisterFormErrors {
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { signIn } = useAuth();
 
   // --- Form state (khớp bảng `user`: username, email, password_hash) ---
   const [username, setUsername] = useState('');
@@ -79,8 +83,10 @@ export default function RegisterScreen() {
 
     if (!password) {
       nextErrors.password = 'Vui lòng nhập mật khẩu.';
-    } else if (password.length < 6) {
-      nextErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự.';
+    } else if (password.length < 8 || password.length > 72) {
+      nextErrors.password = 'Mật khẩu phải từ 8 đến 72 ký tự.';
+    } else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+      nextErrors.password = 'Mật khẩu phải có cả chữ và số.';
     }
 
     if (!confirmPassword) {
@@ -103,33 +109,55 @@ export default function RegisterScreen() {
 
     setIsLoading(true);
     try {
-      // TODO: Gọi API đăng ký thật tại đây, ví dụ:
-      // const res = await authApi.register({
-      //   username: username.trim(),
-      //   email: email.trim(),
-      //   password,
-      // });
-      // - BE tạo record trong bảng `user` (username/email UNIQUE) và gửi OTP về email
-      // - Nếu BE trả 409 (username/email đã tồn tại) -> hiển thị lỗi tương ứng ở đúng field
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // giả lập gọi API
-
-      // Đăng ký thành công -> chuyển sang màn xác thực OTP kèm email vừa đăng ký
-      router.push({
-        pathname: '/otp-verify',
-        params: { email: email.trim() },
+      const res = await authApi.register({
+        username: username.trim(),
+        email: email.trim(),
+        password,
       });
-    } catch (err: any) {
-      // TODO: map lỗi thật từ backend, vd:
-      // - 409 -> "Tên đăng nhập hoặc email đã được sử dụng"
-      setFormError(err?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+      // Đăng ký xong là đăng nhập luôn: lưu token, guard trong app/_layout.tsx
+      // tự chuyển sang giao diện app (không còn bước OTP sau đăng ký).
+      await signIn(res);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        switch (err.code) {
+          case 'EMAIL_ALREADY_EXISTS':
+            setErrors((prev) => ({ ...prev, email: 'Email này đã được sử dụng.' }));
+            break;
+          case 'USERNAME_ALREADY_EXISTS':
+            setErrors((prev) => ({ ...prev, username: 'Tên đăng nhập đã được sử dụng.' }));
+            break;
+          case 'PASSWORD_TOO_LONG':
+            setErrors((prev) => ({
+              ...prev,
+              password: 'Mật khẩu quá dài, vui lòng chọn mật khẩu ngắn hơn.',
+            }));
+            break;
+          case 'VALIDATION_ERROR': {
+            const f = err.fieldErrors ?? {};
+            if (f.username || f.email || f.password) {
+              setErrors((prev) => ({
+                ...prev,
+                username: f.username ?? prev.username,
+                email: f.email ?? prev.email,
+                password: f.password ?? prev.password,
+              }));
+            } else {
+              setFormError(err.message);
+            }
+            break;
+          }
+          default:
+            setFormError(err.message);
+        }
+      } else {
+        setFormError('Đăng ký thất bại. Vui lòng thử lại.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleRegister = () => {
-    // TODO: Tích hợp Google OAuth (expo-auth-session / firebase)
-  };
+  
 
   return (
     <KeyboardAvoidingView
@@ -302,15 +330,6 @@ export default function RegisterScreen() {
               Tạo tài khoản
             </Button>
 
-            <Button
-              variant="outline"
-              size="lg"
-              leadingIcon={<GoogleIcon size={20} />}
-              onPress={handleGoogleRegister}
-              className="w-full"
-            >
-              Tiếp tục với Google
-            </Button>
           </View>
         </View>
 
