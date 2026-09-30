@@ -1,15 +1,10 @@
-import React, { memo } from 'react';
-import {
-  Pressable,
-  Text,
-  View,
-  type PressableProps,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { UserIcon } from '@solar-icons/react-native/linear/user';
-import { cn } from './input';
+import { UserIcon } from "@solar-icons/react-native/linear/user";
+import { Image } from "expo-image";
+import React, { memo } from "react";
+import { Pressable, Text, View, type PressableProps } from "react-native";
+import { cn } from "./input";
 
-export interface FriendItemProps extends Omit<PressableProps, 'children'> {
+export interface FriendItemProps extends Omit<PressableProps, "children"> {
   /** ID người dùng */
   id?: string;
   /** Tên người dùng / bạn bè */
@@ -24,6 +19,7 @@ export interface FriendItemProps extends Omit<PressableProps, 'children'> {
   showStatusDot?: boolean;
   /** Dòng trạng thái hoặc mô tả phụ bên dưới tên (tùy chọn) */
   statusText?: string;
+  rightElement?: React.ReactNode;
   className?: string;
 }
 
@@ -35,9 +31,10 @@ export const FriendItem = memo(function FriendItem({
   name,
   avatarUrl,
   isOnline = true,
-  statusColor = '#8E51FF',
+  statusColor = "#8E51FF",
   showStatusDot = true,
   statusText,
+  rightElement,
   className,
   ...props
 }: FriendItemProps) {
@@ -47,8 +44,8 @@ export const FriendItem = memo(function FriendItem({
       accessibilityLabel={name}
       hitSlop={8}
       className={cn(
-        'w-full h-20 flex-row items-center px-4 py-3 gap-3 bg-white active:bg-secondary/30 transition-colors',
-        className
+        "w-full h-20 flex-row items-center px-4 py-3 gap-3 bg-white active:bg-secondary/30 transition-colors",
+        className,
       )}
       {...props}
     >
@@ -94,6 +91,8 @@ export const FriendItem = memo(function FriendItem({
           </Text>
         ) : null}
       </View>
+
+      {rightElement}
     </Pressable>
   );
 });

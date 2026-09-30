@@ -117,6 +117,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       const res = await authApi.login({ email: email.trim(), password });
+      console.log('[login] expiresIn =', res.expiresIn, 'refreshToken có =', !!res.refreshToken);
       console.log("[login] API xong", Date.now() - t0, "ms");
 
       // Lưu token. Guard trong app/_layout.tsx sẽ tự chuyển sang giao diện app.
