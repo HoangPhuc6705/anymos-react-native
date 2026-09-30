@@ -1,15 +1,30 @@
 // src/app/index.tsx
-import React from 'react';
-import { Redirect } from 'expo-router';
+// import { Redirect } from 'expo-router';
+// import { useAuth } from '@/context/auth-context';
+
+// export default function Index() {
+//   const { isAuthenticated } = useAuth();
+
+//   // Đã đăng nhập (token còn trong SecureStore) thì vào app, chưa thì vào Login.
+//   // Trạng thái isLoading đã được app/_layout.tsx xử lý (giữ splash) trước khi màn này hiện.
+//   return (
+//     <Redirect
+//       href={(isAuthenticated ? '/(feat)/friend-chat' : '/(auth)/login') as any}
+//     />
+//   );
+// }
+import { useAuth } from "@/context/auth-context";
+import { Redirect } from "expo-router";
 
 export default function Index() {
-  // TODO: khi có auth state thật (vd: check access_token/refresh_token trong SecureStore):
-  // const { isAuthenticated, isLoading } = useAuth();
-  // if (isLoading) return <SplashScreen />; // hoặc null, đợi SplashScreen.hideAsync()
-  // return isAuthenticated
-  //   ? <Redirect href={'/(feat)/friend-chat' as any} />
-  //   : <Redirect href={'/(auth)/login' as any} />;
+  const { isAuthenticated, isLoading } = useAuth();
 
-  // Hiện tại chưa có auth state -> luôn vào Login trước
-  return <Redirect href={'/(auth)/login' as any} />;
+  // Đang đọc token đã lưu (splash vẫn hiện): chưa chuyển hướng để khỏi nháy màn Login
+  if (isLoading) return null;
+
+  return (
+    <Redirect
+      href={(isAuthenticated ? "/(feat)/friend-chat" : "/(auth)/login") as any}
+    />
+  );
 }

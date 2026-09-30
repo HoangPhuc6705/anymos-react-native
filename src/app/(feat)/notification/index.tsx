@@ -1,16 +1,30 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
+    Alert,
     FlatList,
+    Pressable,
     StyleSheet,
+    Text,
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Navhost, type NavTabKey } from '@/components/navhost';
-import { FilterGroup } from '@/components/ui/filter';
 import { Header } from '@/components/ui/header';
+import { useAuth } from '@/context/auth-context';
+import { formatRelativeTime } from '@/lib/format-time';
+import { ApiError } from '@/services/api';
+import {
+    acceptFriendRequest,
+    errorMessage,
+    getPendingRequests,
+    rejectFriendRequest,
+    senderOf,
+    type Friendship,
+} from '@/services/friends';
 import {
     NotificationItem,
     type NotificationType,
@@ -18,6 +32,8 @@ import {
 
 export interface NotificationData {
     id: string;
+    /** Id của bản ghi friendship, dùng cho accept/reject */
+    friendshipId: number;
     actorName: string;
     actionText: string;
     content?: string;
@@ -28,131 +44,114 @@ export interface NotificationData {
     showActions?: boolean;
 }
 
-// Mock danh sách thông báo mẫu đa dạng các loại
-const MOCK_NOTIFICATIONS: NotificationData[] = [
-    {
-        id: 'notif-1',
-        actorName: 'Hermione Granger',
-        actionText: 'đã gửi một tin nhắn mới cho bạn',
-        content: 'Cảm ơn nhé. Khoa học lắm. Thế còn lịch của Ron thì bồ ghi gì?',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-        time: '5 phút trước',
-        isRead: false,
-        type: 'message',
-    },
-    {
-        id: 'notif-2',
-        actorName: 'Ron Weasley',
-        actionText: 'đã gửi cho bạn lời mời kết bạn',
-        avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-        time: '20 phút trước',
-        isRead: false,
-        type: 'friend_request',
-        showActions: true,
-    },
-    {
-        id: 'notif-3',
-        actorName: 'Sofia Ramirez',
-        actionText: 'đã thích tin nhắn của bạn',
-        content: '"Hẹn gặp lại bạn vào lúc 8 giờ tối nay tại thư viện nhé!"',
-        avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
-        time: '1 giờ trước',
-        isRead: false,
-        type: 'like',
-    },
-    {
-        id: 'notif-4',
-        actorName: 'Hana Izquierdo',
-        actionText: 'đã nhắc đến bạn trong một tin nhắn nhóm',
-        content: '@bồ ơi xem giúp mình cuốn Lịch sử Pháp thuật với',
-        avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150',
-        time: '3 giờ trước',
-        isRead: true,
-        type: 'mention',
-    },
-    {
-        id: 'notif-5',
-        actorName: 'WhatsupApp',
-        actionText: 'Chào mừng bạn đến với phiên bản cập nhật mới nhất!',
-        content: 'Trải nghiệm giao diện mượt mà và các tính năng kết nối bạn bè mới.',
-        time: 'Hôm qua',
-        isRead: true,
-        type: 'system',
-    },
-];
-
-export type NotificationFilterKey = 'all' | 'unread';
-
-const FILTER_ITEMS: { key: NotificationFilterKey; label: string }[] = [
-    { key: 'all', label: 'Tất cả' },
-    { key: 'unread', label: 'Chưa đọc' },
-];
-
 const styles = StyleSheet.create({
     listContent: {
         paddingBottom: 16,
+        flexGrow: 1,
     },
 });
 
+function toNotification(f: Friendship): NotificationData {
+    const sender = senderOf(f);
+    return {
+        id: String(f.id),
+        friendshipId: f.id,
+        actorName: sender.username,
+        actionText: 'đã gửi cho bạn lời mời kết bạn',
+        avatarUrl: sender.avatarUrl ?? undefined,
+        time: formatRelativeTime(f.createdAt),
+        isRead: false,
+        type: 'friend_request',
+        showActions: true,
+    };
+}
+
 /**
  * Notification Screen
- * Màn hình thông báo sử dụng NotificationItem được thiết kế dựa trên cấu trúc User Item
+ * Danh sách lời mời kết bạn nhận được. Chỉ tải khi màn hình được mở/focus
+ * (và khi kéo để làm mới); người dùng tự quyết định chấp nhận hay từ chối từng lời mời.
  */
 export default function NotificationScreen() {
     const insets = useSafeAreaInsets();
-    const [activeFilter, setActiveFilter] = useState<'all' | 'unread'>('all');
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<NavTabKey>('inbox');
-    const [notifications, setNotifications] =
-        useState<NotificationData[]>(MOCK_NOTIFICATIONS);
+    const [notifications, setNotifications] = useState<NotificationData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [busyIds, setBusyIds] = useState<number[]>([]);
 
-    // Lọc thông báo theo tab (Tất cả / Chưa đọc)
-    const filteredNotifications = useMemo(() => {
-        if (activeFilter === 'unread') {
-            return notifications.filter((item) => !item.isRead);
+    const busyRef = useRef(new Set<number>());
+    const requestSeq = useRef(0);
+
+    const loadRequests = useCallback(async () => {
+        const seq = ++requestSeq.current;
+        try {
+            const list = await getPendingRequests();
+            if (seq !== requestSeq.current) return;
+            setNotifications(list.map(toNotification));
+            setError(null);
+        } catch (err) {
+            if (seq !== requestSeq.current) return;
+            setError(errorMessage(err));
+        } finally {
+            if (seq === requestSeq.current) {
+                setLoading(false);
+                setRefreshing(false);
+            }
         }
-        return notifications;
-    }, [notifications, activeFilter]);
-
-    const handleMarkAsRead = useCallback((id: string) => {
-        setNotifications((prev) =>
-            prev.map((item) => (item.id === id ? { ...item, isRead: true } : item))
-        );
     }, []);
 
-    const handleAcceptFriend = useCallback((id: string) => {
-        setNotifications((prev) =>
-            prev.map((item) =>
-                item.id === id
-                    ? {
-                        ...item,
-                        isRead: true,
-                        showActions: false,
-                        actionText: 'đã trở thành bạn bè với bạn',
-                    }
-                    : item
-            )
-        );
-    }, []);
+    // Mỗi lần màn hình được focus thì tải lại danh sách lời mời.
+    useFocusEffect(
+        useCallback(() => {
+            loadRequests();
+        }, [loadRequests]),
+    );
 
-    const handleDeclineFriend = useCallback((id: string) => {
-        setNotifications((prev) =>
-            prev.map((item) =>
-                item.id === id ? { ...item, isRead: true, showActions: false } : item
-            )
-        );
-    }, []);
+    const handleRefresh = useCallback(() => {
+        setRefreshing(true);
+        loadRequests();
+    }, [loadRequests]);
 
-    const handlePressItem = useCallback(
-        (item: NotificationData) => {
-            handleMarkAsRead(item.id);
-            if (item.type === 'message') {
-                router.push({
-                    pathname: '/(feat)/chatting' as any,
-                    params: { name: item.actorName, avatar: item.avatarUrl },
-                });
+    const handleDecision = useCallback(
+        async (item: NotificationData, action: 'accept' | 'reject') => {
+            const { friendshipId } = item;
+            if (busyRef.current.has(friendshipId)) return;
+            busyRef.current.add(friendshipId);
+            setBusyIds((prev) => [...prev, friendshipId]);
+
+            try {
+                if (action === 'accept') {
+                    await acceptFriendRequest(friendshipId);
+                } else {
+                    await rejectFriendRequest(friendshipId);
+                }
+                setNotifications((prev) =>
+                    prev.filter((n) => n.friendshipId !== friendshipId),
+                );
+            } catch (err) {
+                if (
+                    err instanceof ApiError &&
+                    (err.code === 'NOT_PENDING' || err.code === 'FRIENDSHIP_NOT_FOUND')
+                ) {
+                    // Lời mời đã được xử lý ở nơi khác (hoặc người gửi đã hủy): tải lại danh sách
+                    Alert.alert('Thông báo', 'Lời mời này không còn hiệu lực.');
+                    loadRequests();
+                } else {
+                    Alert.alert(
+                        action === 'accept'
+                            ? 'Không thể chấp nhận'
+                            : 'Không thể từ chối',
+                        errorMessage(err),
+                    );
+                }
+            } finally {
+                busyRef.current.delete(friendshipId);
+                setBusyIds((prev) => prev.filter((id) => id !== friendshipId));
             }
         },
-        [handleMarkAsRead]
+        [loadRequests],
     );
 
     const handleNavChange = useCallback((tab: NavTabKey) => {
@@ -161,13 +160,48 @@ export default function NotificationScreen() {
             router.push('/(feat)/friend-chat' as any);
         } else if (tab === 'groups') {
             router.push('/(feat)/friends' as any);
+        } else if (tab === 'menu') {
+            router.push('/(feat)/settings' as any);
         }
     }, []);
 
-    const unreadCount = useMemo(
-        () => notifications.filter((n) => !n.isRead).length,
-        [notifications]
-    );
+    const renderEmpty = () => {
+        if (loading) {
+            return (
+                <View className="items-center py-12">
+                    <ActivityIndicator />
+                </View>
+            );
+        }
+        if (error) {
+            return (
+                <View className="items-center gap-3 px-8 py-12">
+                    <Text className="font-open-sans text-center text-mute-foreground">
+                        {error}
+                    </Text>
+                    <Pressable
+                        accessibilityRole="button"
+                        onPress={() => {
+                            setLoading(true);
+                            loadRequests();
+                        }}
+                        className="h-8 items-center justify-center rounded-full bg-[#E4E4E7] px-4 active:opacity-80"
+                    >
+                        <Text className="font-open-sans text-xs text-[#27272A]">
+                            Thử lại
+                        </Text>
+                    </Pressable>
+                </View>
+            );
+        }
+        return (
+            <View className="items-center px-8 py-12">
+                <Text className="font-open-sans text-center text-mute-foreground">
+                    Chưa có lời mời kết bạn nào
+                </Text>
+            </View>
+        );
+    };
 
     return (
         <View
@@ -178,40 +212,37 @@ export default function NotificationScreen() {
 
             {/* 1. Header */}
             <Header
-                title="Thông báo"
-                avatarUrl="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+                title="Lời mời kết bạn"
+                avatarUrl={user?.avatarUrl ?? undefined}
             />
 
-            {/* 2. Bộ lọc & Danh sách thông báo */}
+            {/* 2. Danh sách lời mời kết bạn */}
             <FlatList
-                data={filteredNotifications}
+                data={notifications}
+                extraData={busyIds}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.listContent}
-                ListHeaderComponent={
-                    <View className="py-3 bg-white">
-                        <FilterGroup
-                            items={FILTER_ITEMS}
-                            activeKey={activeFilter}
-                            onChange={setActiveFilter}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                ListEmptyComponent={renderEmpty}
+                renderItem={({ item }) => {
+                    const busy = busyIds.includes(item.friendshipId);
+                    return (
+                        <NotificationItem
+                            actorName={item.actorName}
+                            actionText={item.actionText}
+                            content={busy ? 'Đang xử lý...' : item.content}
+                            avatarUrl={item.avatarUrl}
+                            time={item.time}
+                            isRead={item.isRead}
+                            type={item.type}
+                            showActions={item.showActions && !busy}
+                            onAccept={() => handleDecision(item, 'accept')}
+                            onDecline={() => handleDecision(item, 'reject')}
                         />
-                    </View>
-                }
-                renderItem={({ item }) => (
-                    <NotificationItem
-                        actorName={item.actorName}
-                        actionText={item.actionText}
-                        content={item.content}
-                        avatarUrl={item.avatarUrl}
-                        time={item.time}
-                        isRead={item.isRead}
-                        type={item.type}
-                        showActions={item.showActions}
-                        onAccept={() => handleAcceptFriend(item.id)}
-                        onDecline={() => handleDeclineFriend(item.id)}
-                        onPress={() => handlePressItem(item)}
-                    />
-                )}
+                    );
+                }}
             />
 
             {/* 3. Thanh điều hướng Navhost dưới đáy */}
@@ -219,8 +250,6 @@ export default function NotificationScreen() {
                 <Navhost
                     activeTab={activeTab}
                     onTabChange={handleNavChange}
-                    inboxBadge={unreadCount}
-                    chatBadge={2}
                 />
             </View>
         </View>

@@ -2,15 +2,16 @@
 import {
   AnymosLogo,
   Button,
-  Checkbox,
   EyeClosedIcon,
   EyeIcon,
-  GoogleIcon,
   InputGroup,
   LockIcon,
-  UserIcon,
+  MailIcon
 } from "@/components/ui";
 import { Palette } from "@/constants/themes";
+import { useAuth } from "@/context/auth-context";
+import { ApiError } from "@/services/api";
+import * as authApi from "@/services/auth";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
@@ -28,15 +29,16 @@ import {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface LoginFormErrors {
-  identifier?: string;
+  email?: string;
   password?: string;
 }
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn } = useAuth();
 
   // --- Form state ---
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -88,22 +90,17 @@ export default function LoginScreen() {
 
   const validate = (): boolean => {
     const nextErrors: LoginFormErrors = {};
-    const trimmedIdentifier = identifier.trim();
+    const trimmedEmail = email.trim();
 
-    if (!trimmedIdentifier) {
-      nextErrors.identifier = "Vui lòng nhập tên đăng nhập hoặc email.";
-    } else if (trimmedIdentifier.includes("@")) {
-      if (!EMAIL_REGEX.test(trimmedIdentifier)) {
-        nextErrors.identifier = "Email không đúng định dạng.";
-      }
-    } else if (trimmedIdentifier.length < 3) {
-      nextErrors.identifier = "Tên đăng nhập phải có ít nhất 3 ký tự.";
+    if (!trimmedEmail) {
+      nextErrors.email = "Vui lòng nhập email.";
+    } else if (!EMAIL_REGEX.test(trimmedEmail)) {
+      nextErrors.email = "Email không đúng định dạng.";
     }
 
+    // Đăng nhập chỉ cần có mật khẩu; luật độ mạnh chỉ áp dụng lúc đăng ký
     if (!password) {
       nextErrors.password = "Vui lòng nhập mật khẩu.";
-    } else if (password.length < 6) {
-      nextErrors.password = "Mật khẩu phải có ít nhất 6 ký tự.";
     }
 
     setErrors(nextErrors);
@@ -114,20 +111,33 @@ export default function LoginScreen() {
     setFormError("");
     if (!validate()) return;
 
+    const t0 = Date.now();
+    console.log("[login] bấm nút");
+
     setIsLoading(true);
     try {
-      // TODO: Gọi API đăng nhập thật tại đây
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.replace("/(feat)/friend-chat" as any);
-    } catch (err: any) {
-      setFormError(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+      const res = await authApi.login({ email: email.trim(), password });
+      console.log('[login] expiresIn =', res.expiresIn, 'refreshToken có =', !!res.refreshToken);
+      console.log("[login] API xong", Date.now() - t0, "ms");
+
+      // Lưu token. Guard trong app/_layout.tsx sẽ tự chuyển sang giao diện app.
+      await signIn(res);
+      console.log("[login] signIn xong", Date.now() - t0, "ms");
+    } catch (err) {
+      console.log("[login] lỗi", Date.now() - t0, "ms", err);
+      if (err instanceof ApiError) {
+        const f = err.fieldErrors ?? {};
+        if (err.code === "VALIDATION_ERROR" && (f.email || f.password)) {
+          setErrors({ email: f.email, password: f.password });
+        } else {
+          setFormError(err.message);
+        }
+      } else {
+        setFormError("Đăng nhập thất bại. Vui lòng thử lại.");
+      }
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    // TODO: Tích hợp Google OAuth
   };
 
   return (
@@ -162,19 +172,20 @@ export default function LoginScreen() {
         <View className="gap-4 mb-8">
           <InputGroup
             size="large"
-            label="Tên đăng nhập hoặc Email"
-            placeholder="Tên đăng nhập hoặc email"
-            value={identifier}
+            label="Email"
+            placeholder="example@gmail.com"
+            value={email}
             onChangeText={(text) => {
-              setIdentifier(text);
-              if (errors.identifier) {
-                setErrors((prev) => ({ ...prev, identifier: undefined }));
+              setEmail(text);
+              if (errors.email) {
+                setErrors((prev) => ({ ...prev, email: undefined }));
               }
             }}
+            keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            leadingIcon={<UserIcon size={20} />}
-            error={errors.identifier}
+            leadingIcon={<MailIcon size={20} />}
+            error={errors.email}
           />
 
           <InputGroup
@@ -211,12 +222,6 @@ export default function LoginScreen() {
           />
 
           <View className="flex-row items-center justify-between mt-1 gap-3">
-            <Checkbox
-              checked={rememberMe}
-              onChange={setRememberMe}
-              label="Ghi nhớ đăng nhập"
-              style={{ maxWidth: "60%", flexShrink: 1 }}
-            />
             <Pressable
               onPress={() => router.push("/forgot-password")}
               hitSlop={8}
@@ -237,16 +242,6 @@ export default function LoginScreen() {
               className="w-full"
             >
               Đăng nhập
-            </Button>
-
-            <Button
-              variant="outline"
-              size="lg"
-              leadingIcon={<GoogleIcon size={20} />}
-              onPress={handleGoogleLogin}
-              className="w-full"
-            >
-              Tiếp tục với Google
             </Button>
           </View>
         </View>
