@@ -65,7 +65,11 @@ function toItem(
 /** Nút hành động theo quan hệ; null = không hiện nút. */
 function getAction(
   relationship: FriendRelationship,
-): { title: string; variant: "default" | "secondary"; disabled: boolean } | null {
+): {
+  title: string;
+  variant: "default" | "secondary";
+  disabled: boolean;
+} | null {
   switch (relationship) {
     case "NONE":
       return { title: "Kết bạn", variant: "default", disabled: false };

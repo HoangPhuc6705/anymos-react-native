@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Navhost, type NavTabKey } from '@/components/navhost';
 import { Header } from '@/components/ui/header';
+import { useAuth } from '@/context/auth-context';
 import { formatRelativeTime } from '@/lib/format-time';
 import { ApiError } from '@/services/api';
 import {
@@ -72,6 +73,7 @@ function toNotification(f: Friendship): NotificationData {
  */
 export default function NotificationScreen() {
     const insets = useSafeAreaInsets();
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<NavTabKey>('inbox');
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
     const [loading, setLoading] = useState(true);
@@ -211,7 +213,7 @@ export default function NotificationScreen() {
             {/* 1. Header */}
             <Header
                 title="Lời mời kết bạn"
-                avatarUrl="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+                avatarUrl={user?.avatarUrl ?? undefined}
             />
 
             {/* 2. Danh sách lời mời kết bạn */}

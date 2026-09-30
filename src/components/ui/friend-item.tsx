@@ -55,7 +55,6 @@ export const FriendItem = memo(function FriendItem({
             <UserIcon size={20} color="#71717A" />
           )}
         </View>
-
       </View>
 
       {/* 2. Chi tiết người dùng: Tên & Trạng thái phụ */}

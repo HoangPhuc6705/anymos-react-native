@@ -1,116 +1,116 @@
 import { MinimalisticMagnifierIcon } from "@solar-icons/react-native/linear/minimalistic-magnifier";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useMemo, useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { useCallback, useMemo, useRef, useState } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Navhost, type NavTabKey } from "@/components/navhost";
 import { FriendItem } from "@/components/ui/friend-item";
 import { Header } from "@/components/ui/header";
 import AppInput from "@/components/ui/input";
+import { useAuth } from "@/context/auth-context";
+import { errorMessage, getFriends, otherUserOf } from "@/services/friends";
 
 export interface FriendData {
-  id: string;
+  /** Id người dùng của người bạn (không phải id của bản ghi friendship) */
+  id: number;
   name: string;
-  avatarUrl: string;
+  avatarUrl?: string;
 }
-
-// Mock danh sách bạn bè dựa trên thiết kế Figma (Node 30:268 & 52:270)
-const FRIENDS_LIST: FriendData[] = [
-  {
-    id: "1",
-    name: "Hermione Granger",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-  },
-  {
-    id: "2",
-    name: "Sofia Ramirez",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
-  },
-  {
-    id: "3",
-    name: "Hana Izquierdo",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150",
-  },
-  {
-    id: "4",
-    name: "Khadija Dubois",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150",
-  },
-  {
-    id: "5",
-    name: "Jasmine Carter",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-  },
-  {
-    id: "6",
-    name: "David Wilson",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
-  },
-  {
-    id: "7",
-    name: "Sophia Brown",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
-  },
-  {
-    id: "8",
-    name: "Michael Smith",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-  },
-  {
-    id: "9",
-    name: "Emma Davis",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
-  },
-  {
-    id: "10",
-    name: "Alice Johnson",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
-  },
-];
 
 const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 16,
+    flexGrow: 1,
   },
 });
 
 /**
  * Friends List Screen (Figma node 30:268)
- * Màn hình danh sách bạn bè với thanh tìm kiếm "Tìm kiếm bạn bè" và danh sách FriendItem 80px
+ * Danh sách bạn bè lấy từ API (GET /api/v1/friends), tải lại mỗi khi màn hình được focus.
+ * Thanh tìm kiếm lọc theo tên ngay trên máy.
  */
 export default function FriendsScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const myId = user?.id;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<NavTabKey>("groups");
+  const [friends, setFriends] = useState<FriendData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Chỉ nhận kết quả của lần gọi mới nhất (tránh kết quả cũ ghi đè kết quả mới)
+  const requestSeq = useRef(0);
+
+  const loadFriends = useCallback(async () => {
+    if (myId === undefined) return;
+    const seq = ++requestSeq.current;
+    try {
+      const list = await getFriends();
+      if (seq !== requestSeq.current) return;
+      setFriends(
+        list
+          .map((f) => {
+            // Mỗi friendship có 2 user: lấy người còn lại (không phải mình)
+            const other = otherUserOf(f, myId);
+            return {
+              id: other.id,
+              name: other.username,
+              avatarUrl: other.avatarUrl ?? undefined,
+            };
+          })
+          .sort((a, b) => a.name.localeCompare(b.name, "vi")),
+      );
+      setError(null);
+    } catch (err) {
+      if (seq !== requestSeq.current) return;
+      setError(errorMessage(err));
+    } finally {
+      if (seq === requestSeq.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    }
+  }, [myId]);
+
+  // Mỗi lần vào màn hình (kể cả quay lại từ màn hình lời mời) thì tải lại danh sách.
+  useFocusEffect(
+    useCallback(() => {
+      loadFriends();
+    }, [loadFriends]),
+  );
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadFriends();
+  }, [loadFriends]);
 
   // Lọc danh sách bạn bè theo từ khóa tìm kiếm
   const filteredFriends = useMemo(() => {
-    let result = FRIENDS_LIST;
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter((item) => item.name.toLowerCase().includes(query));
-    }
-
-    return result;
-  }, [searchQuery]);
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return friends;
+    return friends.filter((item) => item.name.toLowerCase().includes(query));
+  }, [friends, searchQuery]);
 
   const handleOpenChat = useCallback((friend: FriendData) => {
     router.push({
       pathname: "/(feat)/chatting" as any,
-      params: { name: friend.name, avatar: friend.avatarUrl },
+      params: {
+        name: friend.name,
+        avatar: friend.avatarUrl ?? "",
+        peerUserId: String(friend.id),
+      },
     });
   }, []);
 
@@ -136,6 +136,48 @@ export default function FriendsScreen() {
     [handleOpenChat],
   );
 
+  const renderEmpty = () => {
+    if (loading) {
+      return (
+        <View className="items-center py-12">
+          <ActivityIndicator />
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View className="items-center gap-3 px-8 py-12">
+          <Text className="font-open-sans text-center text-mute-foreground">
+            {error}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              setLoading(true);
+              loadFriends();
+            }}
+            className="h-8 items-center justify-center rounded-full bg-[#E4E4E7] px-4 active:opacity-80"
+          >
+            <Text className="font-open-sans text-xs text-[#27272A]">
+              Thử lại
+            </Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    return (
+      <View className="items-center px-8 py-12">
+        <Text className="font-open-sans text-center text-mute-foreground">
+          {searchQuery.trim()
+            ? "Không tìm thấy bạn bè phù hợp"
+            : "Bạn chưa có bạn bè nào"}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
       <StatusBar style="dark" />
@@ -143,21 +185,19 @@ export default function FriendsScreen() {
       {/* 1. Header (Figma node 30:269) */}
       <Header
         title="WhatsupApp"
-        avatarUrl="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+        avatarUrl={user?.avatarUrl ?? undefined}
       />
 
       {/* 2. Danh sách bạn bè kèm Header List (Figma node 30:272) */}
       <FlatList
         data={filteredFriends}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         renderItem={renderFriendItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        getItemLayout={(_, index) => ({
-          length: 80,
-          offset: 80 * index,
-          index,
-        })}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        ListEmptyComponent={renderEmpty}
         ListHeaderComponent={
           <View className="flex-col gap-4 pt-4 pb-2">
             {/* Thanh tìm kiếm bạn bè (Figma node 30:411 / Input 44px) */}
@@ -170,7 +210,6 @@ export default function FriendsScreen() {
                 leadingIcon={<MinimalisticMagnifierIcon size={16} />}
               />
             </View>
-
           </View>
         }
       />
