@@ -62,7 +62,7 @@ export function senderOf(f: Friendship): AuthUser {
 /** GET /api/v1/users/search?email=  → mảng 0 hoặc 1 phần tử (khớp chính xác). */
 export function searchUsersByEmail(email: string): Promise<UserSearchResult[]> {
   return authedRequest<UserSearchResult[]>(
-    `/api/v1/users/search?email=${encodeURIComponent(email.trim())}`,
+    `/api/v1/friends/search?email=${encodeURIComponent(email.trim())}`,
     { method: "GET" },
   );
 }

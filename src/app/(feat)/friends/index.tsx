@@ -6,20 +6,14 @@ import { FlatList, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Navhost, type NavTabKey } from "@/components/navhost";
-import { FilterGroup } from "@/components/ui/filter";
 import { FriendItem } from "@/components/ui/friend-item";
 import { Header } from "@/components/ui/header";
 import AppInput from "@/components/ui/input";
-
-export type FriendFilterKey = "all" | "active" | "offline";
 
 export interface FriendData {
   id: string;
   name: string;
   avatarUrl: string;
-  isOnline: boolean;
-  statusText?: string;
-  statusColor?: string;
 }
 
 // Mock danh sách bạn bè dựa trên thiết kế Figma (Node 30:268 & 52:270)
@@ -29,97 +23,61 @@ const FRIENDS_LIST: FriendData[] = [
     name: "Hermione Granger",
     avatarUrl:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-    isOnline: true,
-    statusText: "Đang hoạt động",
-    statusColor: "#8E51FF",
   },
   {
     id: "2",
     name: "Sofia Ramirez",
     avatarUrl:
       "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
-    isOnline: true,
-    statusText: "Đang hoạt động",
-    statusColor: "#8E51FF",
   },
   {
     id: "3",
     name: "Hana Izquierdo",
     avatarUrl:
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150",
-    isOnline: true,
-    statusText: "Đang hoạt động",
-    statusColor: "#8E51FF",
   },
   {
     id: "4",
     name: "Khadija Dubois",
     avatarUrl:
       "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150",
-    isOnline: false,
-    statusText: "Truy cập 15 phút trước",
-    statusColor: "#71717A",
   },
   {
     id: "5",
     name: "Jasmine Carter",
     avatarUrl:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-    isOnline: false,
-    statusText: "Truy cập 1 giờ trước",
-    statusColor: "#71717A",
   },
   {
     id: "6",
     name: "David Wilson",
     avatarUrl:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
-    isOnline: true,
-    statusText: "Đang hoạt động",
-    statusColor: "#8E51FF",
   },
   {
     id: "7",
     name: "Sophia Brown",
     avatarUrl:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
-    isOnline: true,
-    statusText: "Đang hoạt động",
-    statusColor: "#8E51FF",
   },
   {
     id: "8",
     name: "Michael Smith",
     avatarUrl:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-    isOnline: false,
-    statusText: "Truy cập hôm qua",
-    statusColor: "#71717A",
   },
   {
     id: "9",
     name: "Emma Davis",
     avatarUrl:
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
-    isOnline: false,
-    statusText: "Offline",
-    statusColor: "#71717A",
   },
   {
     id: "10",
     name: "Alice Johnson",
     avatarUrl:
       "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
-    isOnline: true,
-    statusText: "Đang hoạt động",
-    statusColor: "#8E51FF",
   },
-];
-
-const FILTER_ITEMS: { key: FriendFilterKey; label: string }[] = [
-  { key: "all", label: "Tất cả" },
-  { key: "active", label: "Đang hoạt động" },
-  { key: "offline", label: "Offline" },
 ];
 
 const styles = StyleSheet.create({
@@ -130,23 +88,16 @@ const styles = StyleSheet.create({
 
 /**
  * Friends List Screen (Figma node 30:268)
- * Màn hình danh sách bạn bè với thanh tìm kiếm "Tìm kiếm bạn bè", bộ lọc 3 trạng thái và danh sách FriendItem 80px
+ * Màn hình danh sách bạn bè với thanh tìm kiếm "Tìm kiếm bạn bè" và danh sách FriendItem 80px
  */
 export default function FriendsScreen() {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FriendFilterKey>("all");
   const [activeTab, setActiveTab] = useState<NavTabKey>("groups");
 
-  // Lọc danh sách bạn bè theo từ khóa tìm kiếm và tab bộ lọc
+  // Lọc danh sách bạn bè theo từ khóa tìm kiếm
   const filteredFriends = useMemo(() => {
     let result = FRIENDS_LIST;
-
-    if (activeFilter === "active") {
-      result = result.filter((item) => item.isOnline);
-    } else if (activeFilter === "offline") {
-      result = result.filter((item) => !item.isOnline);
-    }
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -154,7 +105,7 @@ export default function FriendsScreen() {
     }
 
     return result;
-  }, [searchQuery, activeFilter]);
+  }, [searchQuery]);
 
   const handleOpenChat = useCallback((friend: FriendData) => {
     router.push({
@@ -179,10 +130,6 @@ export default function FriendsScreen() {
       <FriendItem
         name={item.name}
         avatarUrl={item.avatarUrl}
-        isOnline={item.isOnline}
-        statusColor={item.statusColor}
-        showStatusDot={true}
-        statusText={item.statusText}
         onPress={() => handleOpenChat(item)}
       />
     ),
@@ -224,12 +171,6 @@ export default function FriendsScreen() {
               />
             </View>
 
-            {/* Hàng bộ lọc 3 trạng thái: Tất cả / Đang hoạt động / Offline (Figma node 51:244) */}
-            <FilterGroup
-              items={FILTER_ITEMS}
-              activeKey={activeFilter}
-              onChange={setActiveFilter}
-            />
           </View>
         }
       />
