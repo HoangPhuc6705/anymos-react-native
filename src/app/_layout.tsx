@@ -1,5 +1,6 @@
-import '@/global.css';
+import "@/global.css";
 
+import { AuthProvider, useAuth } from "@/context/auth-context";
 import {
   OpenSans_300Light,
   OpenSans_400Regular,
@@ -8,13 +9,21 @@ import {
   OpenSans_700Bold,
   OpenSans_800ExtraBold,
   useFonts,
-} from '@expo-google-fonts/open-sans';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
-import { AuthProvider, useAuth } from '@/context/auth-context';
+} from "@expo-google-fonts/open-sans";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { useColorScheme } from "react-native";
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from "react-native-reanimated";
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,11 +43,11 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <AuthProvider>
         <RootNavigator />
       </AuthProvider>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
     </ThemeProvider>
   );
 }
@@ -53,9 +62,9 @@ function RootNavigator() {
     }
   }, [isLoading]);
 
-  if (isLoading) {
-    return null;
-  }
+  // if (isLoading) {
+  //   return null;
+  // }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
