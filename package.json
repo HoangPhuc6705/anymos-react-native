@@ -6,6 +6,7 @@
     "@expo-google-fonts/open-sans": "^0.4.2",
     "@expo/ui": "~57.0.20",
     "@solar-icons/react-native": "^2.3.2",
+    "@stomp/stompjs": "^7.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "expo": "~57.0.25",
