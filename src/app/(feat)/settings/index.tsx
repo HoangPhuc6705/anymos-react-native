@@ -1,36 +1,30 @@
-import { HamburgerMenuIcon } from '@solar-icons/react-native/linear/hamburger-menu';
-import { UserIcon } from '@solar-icons/react-native/linear/user';
-import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useCallback, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HamburgerMenuIcon } from "@solar-icons/react-native/linear/hamburger-menu";
+import { UserIcon } from "@solar-icons/react-native/linear/user";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useCallback, useState } from "react";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Navhost, type NavTabKey } from '@/components/navhost';
-import AppButton from '@/components/ui/button';
-import { useAuth } from '@/context/auth-context';
+import { Navhost, type NavTabKey } from "@/components/navhost";
+import AppButton from "@/components/ui/button";
+import { useAuth } from "@/context/auth-context";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [activeTab, setActiveTab] = useState<NavTabKey>('menu');
+  const [activeTab, setActiveTab] = useState<NavTabKey>("menu");
 
   const handleNavChange = useCallback((tab: NavTabKey) => {
     setActiveTab(tab);
-    if (tab === 'chat') {
-      router.push('/(feat)/friend-chat' as any);
-    } else if (tab === 'groups') {
-      router.push('/(feat)/friends' as any);
-    } else if (tab === 'inbox') {
-      router.push('/(feat)/notification' as any);
+    if (tab === "chat") {
+      router.push("/(feat)/friend-chat" as any);
+    } else if (tab === "groups") {
+      router.push("/(feat)/friends" as any);
+    } else if (tab === "inbox") {
+      router.push("/(feat)/notification" as any);
     }
   }, []);
 
@@ -46,8 +40,8 @@ export default function SettingsScreen() {
 
   const handleSignOutAllDevices = useCallback(() => {
     Alert.alert(
-      'Đăng xuất khỏi tất cả thiết bị',
-      'Backend hiện chưa cung cấp API thu hồi tất cả phiên đăng nhập. Nút này chưa thực hiện thao tác nào.',
+      "Đăng xuất khỏi tất cả thiết bị",
+      "Backend hiện chưa cung cấp API thu hồi tất cả phiên đăng nhập. Nút này chưa thực hiện thao tác nào.",
     );
   }, []);
 
@@ -78,10 +72,10 @@ export default function SettingsScreen() {
           </View>
           <View className="ml-3 flex-1">
             <Text className="font-open-sans-semibold text-lg text-[#18181B]">
-              {user?.username ?? 'Người dùng'}
+              {user?.username ?? "Người dùng"}
             </Text>
             <Text className="mt-1 font-open-sans text-sm text-[#71717A]">
-              {user?.email ?? ''}
+              {user?.email ?? ""}
             </Text>
           </View>
         </View>
@@ -121,7 +115,7 @@ export default function SettingsScreen() {
       </ScrollView>
 
       <View style={{ paddingBottom: insets.bottom }} className="bg-white">
-        <Navhost activeTab={activeTab} onTabChange={handleNavChange} chatBadge={4} />
+        <Navhost activeTab={activeTab} onTabChange={handleNavChange} />
       </View>
     </View>
   );

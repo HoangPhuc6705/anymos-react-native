@@ -1,15 +1,15 @@
 import { MinimalisticMagnifierIcon } from "@solar-icons/react-native/linear/minimalistic-magnifier";
 import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -50,7 +50,7 @@ export default function FriendChatScreen() {
       setConversations(data);
       setError(null);
     } catch (err) {
-      console.log('[chat] load lỗi', err);
+      console.log("[chat] load lỗi", err);
       // Chưa có endpoint refresh token nên token hết hạn (15 phút) thì đăng nhập lại.
       // TODO: thay bằng tự refresh rồi gọi lại request khi backend có /auth/refresh.
       if (err instanceof ApiError && err.status === 401) {
@@ -84,11 +84,6 @@ export default function FriendChatScreen() {
     setLoading(true);
     load();
   }, [load]);
-
-  const totalUnread = useMemo(
-    () => conversations.reduce((sum, c) => sum + c.unreadCount, 0),
-    [conversations],
-  );
 
   const handleOpenChat = useCallback((c: ConversationSummary) => {
     router.push({
@@ -196,11 +191,7 @@ export default function FriendChatScreen() {
 
       {/* 4. Thanh điều hướng dưới đáy (Figma node 30:83 / Navhost) */}
       <View style={{ paddingBottom: insets.bottom }} className="bg-white">
-        <Navhost
-          activeTab={activeTab}
-          onTabChange={handleNavChange}
-          chatBadge={totalUnread}
-        />
+        <Navhost activeTab={activeTab} onTabChange={handleNavChange} />
       </View>
     </View>
   );

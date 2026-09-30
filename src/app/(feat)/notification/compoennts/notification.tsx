@@ -1,26 +1,24 @@
-import React, { memo } from 'react';
-import {
-  Pressable,
-  Text,
-  View,
-  type PressableProps,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { UserIcon } from '@solar-icons/react-native/linear/user';
-import { BellIcon } from '@solar-icons/react-native/bold/bell';
-import { ChatRoundIcon } from '@solar-icons/react-native/bold/chat-round';
-import { HeartIcon } from '@solar-icons/react-native/bold/heart';
-import { UserPlusIcon } from '@solar-icons/react-native/bold/user-plus';
-import { cn } from '@/components/ui/input';
+import { cn } from "@/components/ui/input";
+import { BellIcon } from "@solar-icons/react-native/bold/bell";
+import { ChatRoundIcon } from "@solar-icons/react-native/bold/chat-round";
+import { HeartIcon } from "@solar-icons/react-native/bold/heart";
+import { UserPlusIcon } from "@solar-icons/react-native/bold/user-plus";
+import { UserIcon } from "@solar-icons/react-native/linear/user";
+import { Image } from "expo-image";
+import { memo } from "react";
+import { Pressable, Text, View, type PressableProps } from "react-native";
 
 export type NotificationType =
-  | 'friend_request'
-  | 'message'
-  | 'mention'
-  | 'like'
-  | 'system';
+  | "friend_request"
+  | "message"
+  | "mention"
+  | "like"
+  | "system";
 
-export interface NotificationItemProps extends Omit<PressableProps, 'children'> {
+export interface NotificationItemProps extends Omit<
+  PressableProps,
+  "children"
+> {
   /** ID định danh thông báo */
   id?: string;
   /** Tên đối tượng gửi thông báo (ví dụ: "Hermione Granger", "Hệ thống") */
@@ -47,8 +45,6 @@ export interface NotificationItemProps extends Omit<PressableProps, 'children'> 
   acceptLabel?: string;
   /** Nhãn nút từ chối (mặc định "Từ chối") */
   declineLabel?: string;
-  /** Phần tử tùy biến bên phải */
-  rightElement?: React.ReactNode;
   className?: string;
 }
 
@@ -57,31 +53,31 @@ export interface NotificationItemProps extends Omit<PressableProps, 'children'> 
  */
 function renderTypeBadge(type?: NotificationType) {
   switch (type) {
-    case 'friend_request':
+    case "friend_request":
       return (
         <View className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#8E51FF] items-center justify-center border-2 border-white dark:border-background">
           <UserPlusIcon size={8} color="#FFFFFF" />
         </View>
       );
-    case 'message':
+    case "message":
       return (
         <View className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#00A6F4] items-center justify-center border-2 border-white dark:border-background">
           <ChatRoundIcon size={8} color="#FFFFFF" />
         </View>
       );
-    case 'like':
+    case "like":
       return (
         <View className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#FB2C36] items-center justify-center border-2 border-white dark:border-background">
           <HeartIcon size={8} color="#FFFFFF" />
         </View>
       );
-    case 'mention':
+    case "mention":
       return (
         <View className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#FF6900] items-center justify-center border-2 border-white dark:border-background">
           <UserIcon size={8} color="#FFFFFF" />
         </View>
       );
-    case 'system':
+    case "system":
     default:
       return (
         <View className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#8E51FF] items-center justify-center border-2 border-white dark:border-background">
@@ -105,13 +101,12 @@ export const NotificationItem = memo(function NotificationItem({
   avatarUrl,
   time,
   isRead = false,
-  type = 'system',
+  type = "system",
   showActions = false,
   onAccept,
   onDecline,
-  acceptLabel = 'Chấp nhận',
-  declineLabel = 'Từ chối',
-  rightElement,
+  acceptLabel = "Chấp nhận",
+  declineLabel = "Từ chối",
   className,
   ...props
 }: NotificationItemProps) {
@@ -120,9 +115,9 @@ export const NotificationItem = memo(function NotificationItem({
       accessibilityRole="button"
       hitSlop={8}
       className={cn(
-        'w-full min-h-[80px] flex-row items-center px-4 py-3 gap-3 bg-white active:bg-secondary/30 transition-colors border-b border-[#E4E4E7]/30',
-        !isRead ? 'bg-[#8E51FF]/[0.03]' : undefined,
-        className
+        "w-full min-h-[80px] flex-row items-center px-4 py-3 gap-3 bg-white active:bg-secondary/30 transition-colors border-b border-[#E4E4E7]/30",
+        !isRead ? "bg-[#8E51FF]/[0.03]" : undefined,
+        className,
       )}
       {...props}
     >
@@ -151,7 +146,7 @@ export const NotificationItem = memo(function NotificationItem({
         {/* Dòng tên người gửi & hành động */}
         <Text className="text-base leading-6">
           <Text className="font-open-sans-semibold font-semibold text-[#09090B]">
-            {actorName}{' '}
+            {actorName}{" "}
           </Text>
           {actionText ? (
             <Text className="font-open-sans font-normal text-[#52525C]">
@@ -202,13 +197,6 @@ export const NotificationItem = memo(function NotificationItem({
           {time}
         </Text>
       </View>
-
-      {/* 3. Phần tử bên phải: Chấm xanh/tím chưa đọc hoặc slot tùy biến */}
-      {rightElement !== undefined ? (
-        rightElement
-      ) : !isRead ? (
-        <View className="w-2 h-2 rounded-full bg-[#8E51FF] flex-shrink-0 self-center" />
-      ) : null}
     </Pressable>
   );
 });
