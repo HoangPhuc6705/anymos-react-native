@@ -28,3 +28,28 @@ export function formatChatTime(iso: string | null | undefined, now = new Date())
   const date = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
   return d.getFullYear() === now.getFullYear() ? date : `${date}/${d.getFullYear()}`;
 }
+
+/**
+ * Thời gian tương đối cho thông báo:
+ * "Vừa xong", "5 phút trước", "3 giờ trước", "2 ngày trước",
+ * từ 7 ngày trở lên -> "27/09" (khác năm thì "27/09/2025").
+ */
+export function formatRelativeTime(iso: string | null | undefined, now = new Date()): string {
+  if (!iso) return '';
+
+  const d = new Date(iso.replace(/(\.\d{3})\d+/, '$1'));
+  if (Number.isNaN(d.getTime())) return '';
+
+  const minutes = Math.floor((now.getTime() - d.getTime()) / 60_000);
+  if (minutes < 1) return 'Vừa xong';
+  if (minutes < 60) return `${minutes} phút trước`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} giờ trước`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} ngày trước`;
+
+  const date = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+  return d.getFullYear() === now.getFullYear() ? date : `${date}/${d.getFullYear()}`;
+}
