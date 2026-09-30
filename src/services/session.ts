@@ -71,6 +71,7 @@ async function doRefresh(): Promise<AuthResponse> {
     listener.onRefreshed?.(res, accessExpiresAt);
     return res;
   } catch (err) {
+     console.log('[auth] refresh lỗi', (err as any)?.status, (err as any)?.code);
     if (isFatalAuthError(err)) listener.onExpired?.();
     throw err;
   }

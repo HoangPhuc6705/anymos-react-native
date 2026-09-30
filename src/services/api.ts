@@ -38,6 +38,7 @@ export async function apiRequest<T = void>(
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    console.log('[api]', method, path, 'token =', token ? `${token.slice(0, 20)}… (${token.length} ký tự)` : token);
     const res = await fetch(`${API_BASE_URL}${path}`, {
       method,
       headers: {

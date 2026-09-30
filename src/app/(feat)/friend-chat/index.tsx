@@ -50,6 +50,7 @@ export default function FriendChatScreen() {
       setConversations(data);
       setError(null);
     } catch (err) {
+      console.log('[chat] load lỗi', err);
       // Chưa có endpoint refresh token nên token hết hạn (15 phút) thì đăng nhập lại.
       // TODO: thay bằng tự refresh rồi gọi lại request khi backend có /auth/refresh.
       if (err instanceof ApiError && err.status === 401) {
