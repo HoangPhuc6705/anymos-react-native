@@ -48,7 +48,7 @@ export async function connectWebSocket(): Promise<void> {
         Authorization: `Bearer ${token}`,
       },
       // React Native có WebSocket native, không cần polyfill
-      forceBinaryWSFrames: false,
+      forceBinaryWSFrames: true,
       appendMissingNULLonIncoming: true,
 
       // Heartbeat: kiểm tra kết nối mỗi 10s
@@ -162,6 +162,7 @@ export function publish(destination: string, body: unknown): void {
 
   client.publish({
     destination,
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
 }
