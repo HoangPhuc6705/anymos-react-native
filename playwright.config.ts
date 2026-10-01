@@ -1,0 +1,17 @@
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './',
+  testMatch: 'playwright.test.ts',
+  timeout: 30000,
+  use: {
+    baseURL: 'http://localhost:8081',
+    trace: 'on-first-retry',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+});

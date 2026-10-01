@@ -33,7 +33,7 @@ export function getMessageHistory(
   limit = 50,
 ): Promise<ChatMessage[]> {
   return authedRequest<ChatMessage[]>(
-    `/api/conversations/${conversationId}/messages?limit=${limit}`,
+    `/api/v1/conversations/${conversationId}/messages?limit=${limit}`,
     { method: 'GET' },
   );
 }
