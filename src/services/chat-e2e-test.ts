@@ -363,7 +363,7 @@ async function testRealTimeMessaging(
     // Test 3: Kiểm tra lịch sử REST API
     console.log('\n📝 Test 3: Kiểm tra lịch sử tin nhắn qua REST API...');
     const history = await apiCall<ChatMessageDto[]>(
-      `/api/conversations/${conversationId}/messages?limit=10`,
+      `/api/v1/conversations/${conversationId}/messages?limit=10`,
       { method: 'GET', token: authA.accessToken },
     );
 

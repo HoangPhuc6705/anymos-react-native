@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -26,7 +26,7 @@ import { InputChat } from './components/input-chat';
 import { MessageBubble } from './components/message';
 import { MessageGroupItem } from './components/message-group-item';
 
-// ── Types ──────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type ChatItemType =
   | {
@@ -50,9 +50,9 @@ const styles = StyleSheet.create({
   },
 });
 
-// ── Helpers ────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-/** Nhóm các tin nhắn liên tiếp cùng người gửi thành các group */
+/** NhÃ³m cÃ¡c tin nháº¯n liÃªn tiáº¿p cÃ¹ng ngÆ°á»i gá»­i thÃ nh cÃ¡c group */
 function groupMessages(
   messages: ChatMessage[],
   currentUserId: number,
@@ -85,13 +85,13 @@ function groupMessages(
   return groups;
 }
 
-// ── Component ──────────────────────────────────────────────────────────
+// â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Chatting Screen — kết nối thực với backend qua REST + STOMP WebSocket.
- * - Lấy lịch sử tin nhắn qua REST API khi mount.
- * - Subscribe real-time qua STOMP để nhận tin nhắn mới.
- * - Gửi tin nhắn qua STOMP publish.
+ * Chatting Screen â€” káº¿t ná»‘i thá»±c vá»›i backend qua REST + STOMP WebSocket.
+ * - Láº¥y lá»‹ch sá»­ tin nháº¯n qua REST API khi mount.
+ * - Subscribe real-time qua STOMP Ä‘á»ƒ nháº­n tin nháº¯n má»›i.
+ * - Gá»­i tin nháº¯n qua STOMP publish.
  */
 export default function ChattingScreen() {
   const insets = useSafeAreaInsets();
@@ -103,11 +103,10 @@ export default function ChattingScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   const { user } = useAuth();
 
-  const conversationId = params.conversationId
-    ? Number(params.conversationId)
-    : null;
-  const friendName = (params.name as string) || 'Bạn bè';
-  const friendAvatar = (params.avatar as string) || '';
+  const [conversationId, setConversationId] = useState<number | null>(params.conversationId ? Number(params.conversationId) : null);
+  const peerUserId = (params as any).peerUserId ? Number((params as any).peerUserId) : null;
+  const friendName = (params.name as string) || "Bạn bè";
+  const friendAvatar = (params.avatar as string) || "";
   const currentUserId = user?.id ?? 0;
 
   const [conversation, setConversation] = useState<ChatItemType[]>([]);
@@ -115,7 +114,27 @@ export default function ChattingScreen() {
   const [error, setError] = useState<string | null>(null);
   const [wsConnected, setWsConnected] = useState(isConnected());
 
-  // Kết nối WebSocket nếu chưa
+  useEffect(() => {
+    if (conversationId || !peerUserId) return;
+    import("@/services/conversations").then(({ listConversations }) => {
+      listConversations()
+        .then((conversations) => {
+          const conv = conversations.find((c) => c.peerUserId === peerUserId);
+          if (conv) {
+            setConversationId(conv.id);
+          } else {
+            setError("Không tìm thấy cuộc trò chuyện");
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          setError("Lỗi tải cuộc trò chuyện");
+          setLoading(false);
+        });
+    });
+  }, [conversationId, peerUserId]);
+
+  // Káº¿t ná»‘i WebSocket náº¿u chÆ°a
   useEffect(() => {
     if (!isConnected()) {
       connectWebSocket()
@@ -128,7 +147,7 @@ export default function ChattingScreen() {
     }
   }, []);
 
-  // Tải lịch sử tin nhắn qua REST API
+  // Táº£i lá»‹ch sá»­ tin nháº¯n qua REST API
   useEffect(() => {
     if (!conversationId) {
       setLoading(false);
@@ -142,13 +161,16 @@ export default function ChattingScreen() {
         const messages = await getMessageHistory(conversationId, 50);
         if (cancelled) return;
 
-        const groups = groupMessages(messages, currentUserId, friendAvatar);
+        // Backend returns descending (newest first). We need ascending (oldest first) for UI.
+        const ascendingMessages = [...messages].reverse();
+
+        const groups = groupMessages(ascendingMessages, currentUserId, friendAvatar);
         setConversation(groups);
         setError(null);
       } catch (err) {
         if (cancelled) return;
         if (__DEV__) console.log('[chat] load history error', err);
-        setError('Không tải được tin nhắn. Vui lòng thử lại.');
+        setError('KhÃ´ng táº£i Ä‘Æ°á»£c tin nháº¯n. Vui lÃ²ng thá»­ láº¡i.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -159,14 +181,14 @@ export default function ChattingScreen() {
     };
   }, [conversationId, currentUserId, friendAvatar]);
 
-  // Subscribe tin nhắn real-time qua STOMP
+  // Subscribe tin nháº¯n real-time qua STOMP
   useEffect(() => {
     if (!conversationId || !wsConnected) return;
 
     const unsubscribe = subscribeToConversation(
       conversationId,
       (newMessage: ChatMessage) => {
-        if (__DEV__) console.log('[chat] nhận tin nhắn mới:', newMessage);
+        if (__DEV__) console.log('[chat] nháº­n tin nháº¯n má»›i:', newMessage);
 
         setConversation((prev) => {
           const isSender = newMessage.senderId === currentUserId;
@@ -214,7 +236,7 @@ export default function ChattingScreen() {
     router.back();
   }, []);
 
-  // Gửi tin nhắn qua STOMP WebSocket
+  // Gá»­i tin nháº¯n qua STOMP WebSocket
   const handleSendMessage = useCallback(
     (messageText: string) => {
       if (!messageText.trim() || !conversationId) return;
@@ -225,14 +247,14 @@ export default function ChattingScreen() {
         type: 'TEXT',
       });
 
-      // Optimistic update: hiển thị ngay tin nhắn gửi đi
-      // (sẽ được xác nhận khi server broadcast lại)
-      // Bỏ optimistic update để tránh duplicate — chờ server broadcast.
+      // Optimistic update: hiá»ƒn thá»‹ ngay tin nháº¯n gá»­i Ä‘i
+      // (sáº½ Ä‘Æ°á»£c xÃ¡c nháº­n khi server broadcast láº¡i)
+      // Bá» optimistic update Ä‘á»ƒ trÃ¡nh duplicate â€” chá» server broadcast.
     },
     [conversationId],
   );
 
-  // ── Fallback: nếu không có conversationId (mở từ mock) ───────────
+  // â”€â”€ Fallback: náº¿u khÃ´ng cÃ³ conversationId (má»Ÿ tá»« mock) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const handleSendLocal = useCallback((messageText: string) => {
     if (!messageText.trim()) return;
@@ -270,12 +292,12 @@ export default function ChattingScreen() {
       {/* 1. Header */}
       <ChatHeader
         title={friendName}
-        status={wsConnected ? 'Online' : 'Đang kết nối...'}
+        status={wsConnected ? 'Online' : 'Äang káº¿t ná»‘i...'}
         isOnline={wsConnected}
         onBack={handleBack}
       />
 
-      {/* 2. Nội dung tin nhắn */}
+      {/* 2. Ná»™i dung tin nháº¯n */}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
@@ -284,7 +306,7 @@ export default function ChattingScreen() {
         {loading ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" />
-            <Text className="mt-2 text-gray-500">Đang tải tin nhắn...</Text>
+            <Text className="mt-2 text-gray-500">Äang táº£i tin nháº¯n...</Text>
           </View>
         ) : error ? (
           <View className="flex-1 items-center justify-center px-8">
@@ -303,7 +325,7 @@ export default function ChattingScreen() {
             {conversation.length === 0 && (
               <View className="flex-1 items-center justify-center">
                 <Text className="text-gray-400">
-                  Chưa có tin nhắn nào. Hãy gửi lời chào! 👋
+                  ChÆ°a cÃ³ tin nháº¯n nÃ o. HÃ£y gá»­i lá»i chÃ o! ðŸ‘‹
                 </Text>
               </View>
             )}
@@ -341,7 +363,7 @@ export default function ChattingScreen() {
           </ScrollView>
         )}
 
-        {/* 3. Thanh nhập tin nhắn */}
+        {/* 3. Thanh nháº­p tin nháº¯n */}
         <View style={{ paddingBottom: Math.max(insets.bottom, 8) }}>
           <InputChat
             onSend={conversationId ? handleSendMessage : handleSendLocal}
@@ -351,3 +373,4 @@ export default function ChattingScreen() {
     </View>
   );
 }
+
